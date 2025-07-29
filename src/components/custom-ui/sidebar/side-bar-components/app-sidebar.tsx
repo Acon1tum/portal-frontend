@@ -32,14 +32,9 @@ import {
 } from "@/components/ui/sidebar";
 import { dummyData } from "@/utils/dummy-data";
 import { Item } from "@radix-ui/react-dropdown-menu";
+import { useAuth } from "@/lib/auth-context";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-    role: "User",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -163,6 +158,15 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth();
+
+  // Create user object for NavUser component
+  const userData = {
+    name: user?.name || "User",
+    email: user?.email || "user@example.com",
+    avatar: "/avatars/default.jpg", // Default avatar
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -172,7 +176,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

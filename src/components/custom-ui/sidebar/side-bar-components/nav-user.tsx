@@ -43,12 +43,12 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
-  const { logout: signOut } = useAuth(); // Get the logout function from our auth context
+  const { logoutUser } = useAuth(); // Get the logout function from our auth context
   const { setTheme, theme } = useTheme();
 
   const handleLogout = async () => {
     try {
-      await signOut();
+      await logoutUser();
       router.push("/");
     } catch (err) {
       console.error("Logout error:", err);

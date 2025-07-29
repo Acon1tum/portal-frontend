@@ -1,8 +1,7 @@
 // In your FeaturedBusinesses.tsx file:
 import Link from "next/link";
 import { Building, ChevronRight, MapPin } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Business, FeaturedBusinessesProps } from "@/utils/types";
+import { FeaturedBusinessesProps } from "@/utils/types";
 
 export default function FeaturedBusinesses({ 
   businesses, 

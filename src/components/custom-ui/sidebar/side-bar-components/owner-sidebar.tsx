@@ -34,12 +34,6 @@ export function OwnerSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
   const { user } = useAuth();
 
   const ownerNavData = {
-    user: {
-      name: user?.name || "User", // Use the authenticated user's name
-      email: user?.email || "user@example.com", // Use the authenticated user's email
-      avatar: "/avatars/default.jpg", // Use the authenticated user's avatar
-      role: "Owner",
-    },
     navMain: [
       {
         title: "Dashboard",
@@ -153,6 +147,13 @@ export function OwnerSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
     ],
   };
 
+  // Create user object for NavUser component
+  const userData = {
+    name: user?.name || "User",
+    email: user?.email || "user@example.com",
+    avatar: "/avatars/default.jpg", // Default avatar
+  };
+
   return (  
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -162,7 +163,7 @@ export function OwnerSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <NavMain items={ownerNavData.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={ownerNavData.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -30,14 +30,9 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { dummyData } from "@/utils/dummy-data";
+import { useAuth } from "@/lib/auth-context";
 
 const adminNavData = {
-  user: {
-    name: "Admin User",
-    email: "admin@example.com",
-    avatar: "/avatars/admin.jpg",
-    role: "Administrator",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -166,6 +161,15 @@ const adminNavData = {
 };
 
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth();
+
+  // Create user object for NavUser component
+  const userData = {
+    name: user?.name || "Admin User",
+    email: user?.email || "admin@example.com",
+    avatar: "/avatars/admin.jpg", // Default avatar
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -175,7 +179,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         <NavMain items={adminNavData.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={adminNavData.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

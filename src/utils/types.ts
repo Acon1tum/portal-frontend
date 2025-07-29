@@ -17,6 +17,14 @@ export enum Status {
   INACTIVE = "INACTIVE",
 }
 
+export enum MessageStatus {
+  SENT = "SENT",
+  DELIVERED = "DELIVERED",
+  READ = "READ",
+  FAILED = "FAILED",
+  PENDING = "PENDING",
+}
+
 // Updated to match backend UserRole enum
 export enum UserRole {
   VISITOR = "VISITOR",

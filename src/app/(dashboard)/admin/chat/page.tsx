@@ -1,101 +1,88 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { ChatService } from "@/components/custom-ui/chat/chat-service";
-import { User } from "@/utils/types";
-import { dummyData } from "@/utils/dummy-data";
-import { Paperclip, Send, Smile } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Paperclip, Send, Smile, RefreshCw, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/custom-ui/chat/empty-chat";
 import ChatHeader from "@/components/custom-ui/chat/chat-header";
 import ChatMessage from "@/components/custom-ui/chat/chat-message";
 import ContactsList from "@/components/custom-ui/chat/contact-list";
-import Picker from "@emoji-mart/react"
-// import data from "@emoji-mart/data"
+import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/lib/auth-context";
+import { User, Sex, Attachment, AttachmentType, UserRole, UserType } from "@/utils/types";
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 
+interface EmojiData {
+  native: string;
+}
+
+interface BackendUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  userType?: string;
+}
+
+interface BackendAttachment {
+  id: string;
+  url: string;
+  fileName?: string;
+  fileType?: string;
+  size?: number;
+  uploadedAt: string;
+  messageId: string;
+}
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<any[]>([]);
+  const { user } = useAuth();
+  const {
+    messages,
+    contacts,
+    selectedContact,
+    loading,
+    error,
+    sendMessage,
+    selectContact,
+    deleteMessage,
+    refreshMessages,
+  } = useChat();
+
   const [newMessage, setNewMessage] = useState("");
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [selectedContact, setSelectedContact] = useState<User | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatService = new ChatService();
 
-  useEffect(() => {
-    const user = dummyData.users[0];
-    setCurrentUser(user);
-    setSelectedContact(dummyData.users[1]);
-    if (user) loadMessages();
-
-    const handleNewMessage = (event: CustomEvent) => {
-      const newMsg = event.detail;
-      if (newMsg.senderId === selectedContact?.id && newMsg.receiverId === user.id) {
-        setMessages(prevMessages => [...prevMessages, newMsg]);
-      }
-    };
-
-    window.addEventListener("newMessage", handleNewMessage as EventListener);
-
-    return () => {
-      window.removeEventListener("newMessage", handleNewMessage as EventListener);
-    };
-  }, []);
-
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    loadMessages();
-  }, [selectedContact]);
-
-  const loadMessages = () => {
-    if (selectedContact && currentUser) {
-      const loadedMessages = chatService.getMessages(currentUser.id, selectedContact.id);
-      setMessages(loadedMessages);
-    }
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    if ((!newMessage.trim() && !file) || !currentUser || !selectedContact) return;
-  
-    const attachments = file
-      ? [{
-          id: Date.now().toString(),
-          type: "image",  
-          url: URL.createObjectURL(file),
-          name: file.name,
-          size: file.size,
-        }]
-      : [];
-  
-    const message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      senderId: currentUser.id,
-      receiverId: selectedContact.id,
-      timestamp: new Date().toISOString(),
-      isRead: false,
-      attachments,   
-    };
-  
-    chatService.sendMessage(message);
-    setMessages([...messages, message]);
-    setNewMessage("");
-    setFile(null);
-  };
-  
 
-  const handleEmojiSelect = (emoji: any) => {
+    if ((!newMessage.trim() && !file) || !selectedContact || !user || isSending) return;
+
+    setIsSending(true);
+    try {
+      await sendMessage(newMessage, selectedContact.id);
+      setNewMessage("");
+      setFile(null);
+    } catch (err) {
+      console.error("Failed to send message:", err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleEmojiSelect = (emoji: EmojiData) => {
     setNewMessage(prev => prev + emoji.native);
     setShowEmojiPicker(false);
   };
@@ -110,6 +97,91 @@ export default function ChatPage() {
     fileInputRef.current?.click();
   };
 
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      await deleteMessage(messageId);
+    } catch (err) {
+      console.error("Failed to delete message:", err);
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-background">
+        <div className="w-1/4 bg-card border-r border-border shadow-sm">
+          <div className="p-4 border-b border-border">
+            <h2 className="text-xl font-semibold text-foreground">Chats</h2>
+          </div>
+          <div className="flex items-center justify-center p-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+        <div className="w-3/4 flex items-center justify-center">
+          <div className="text-center">
+            <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading chat...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex h-screen bg-background">
+        <div className="w-1/4 bg-card border-r border-border shadow-sm">
+          <div className="p-4 border-b border-border">
+            <h2 className="text-xl font-semibold text-foreground">Chats</h2>
+          </div>
+          <div className="flex items-center justify-center p-8">
+            <AlertCircle className="h-6 w-6 text-destructive" />
+          </div>
+        </div>
+        <div className="w-3/4 flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-4" />
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={refreshMessages} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform backend user data to frontend User type
+  const transformToUser = (backendUser: BackendUser | null): User | null => {
+    if (!backendUser) return null;
+    return {
+      id: backendUser.id,
+      email: backendUser.email,
+      name: backendUser.name || 'Unknown User',
+      sex: Sex.MALE, // Default value
+      role: backendUser.role as UserRole, // Cast string to enum
+      userType: backendUser.userType as UserType | null, // Cast string to enum
+      currentJobStatus: null,
+      isEmailVerified: true, // Default value
+      accounts: [], // Empty array
+      business: null, // No business
+    };
+  };
+
+  // Transform backend attachments to frontend Attachment format
+  const transformAttachments = (attachments: BackendAttachment[] = []): Attachment[] => {
+    return attachments.map(att => ({
+      id: att.id,
+      type: AttachmentType.FILE, // Default type
+      url: att.url,
+      name: att.fileName || 'file',
+      size: att.size || 0,
+      messageId: att.messageId || '',
+    }));
+  };
+
   return (
     <div className="flex h-screen bg-background">
       {/* Contacts sidebar */}
@@ -118,10 +190,10 @@ export default function ChatPage() {
           <h2 className="text-xl font-semibold text-foreground">Chats</h2>
         </div>
         <ContactsList
-          contacts={dummyData.users}
-          currentUser={currentUser}
-          selectedContact={selectedContact}
-          onSelectContact={setSelectedContact}
+          contacts={contacts.map(transformToUser).filter(Boolean) as User[]}
+          currentUser={transformToUser(user as BackendUser)}
+          selectedContact={selectedContact ? transformToUser(selectedContact) : null}
+          onSelectContact={(contact) => selectContact(contact as BackendUser)}
         />
       </div>
 
@@ -129,24 +201,28 @@ export default function ChatPage() {
       <div className="w-3/4 flex flex-col">
         {selectedContact ? (
           <>
-            <ChatHeader contact={selectedContact} />
+            <ChatHeader contact={transformToUser(selectedContact) as User} />
 
             {/* Messages */}
             <div className="flex-1 p-4 overflow-y-auto bg-secondary scroll-none relative">
               <div className="max-w-3xl mx-auto">
                 {messages.length === 0 ? (
-                  <EmptyState type="no-messages" contact={selectedContact} />
+                  <EmptyState type="no-messages" contact={transformToUser(selectedContact) as User} />
                 ) : (
                   messages.map((message) => (
                     <ChatMessage
                       key={message.id}
-                      message={message}
-                      isOutgoing={message.senderId === currentUser?.id}
-                      sender={message.senderId === currentUser?.id ? currentUser : selectedContact}
-                      onDelete={(messageId) => {
-                        chatService.deleteMessage(messageId);
-                        setMessages(messages.filter((m) => m.id !== messageId));
+                      message={{
+                        id: message.id,
+                        content: message.content,
+                        senderId: message.senderId,
+                        timestamp: message.createdAt,
+                        isRead: message.status === "READ",
+                        attachments: transformAttachments(message.attachments),
                       }}
+                      isOutgoing={message.senderId === user?.id}
+                      sender={message.senderId === user?.id ? transformToUser(user as BackendUser) : transformToUser(selectedContact)}
+                      onDelete={handleDeleteMessage}
                       onReply={() => {
                         // reply functionality here
                       }}
@@ -158,7 +234,7 @@ export default function ChatPage() {
 
               {showEmojiPicker && (
                 <div className="absolute bottom-24 right-6 z-50">
-                  <Picker onEmojiSelect={handleEmojiSelect} />
+                  <Picker onEmojiSelect={handleEmojiSelect} data={data} />
                 </div>
               )}
             </div>
@@ -187,6 +263,7 @@ export default function ChatPage() {
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message"
                   className="flex-1 px-4 py-2 border border-input rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
+                  disabled={isSending}
                 />
 
                 <button
@@ -199,9 +276,14 @@ export default function ChatPage() {
 
                 <button
                   type="submit"
-                  className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition"
+                  className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition disabled:opacity-50"
+                  disabled={isSending || (!newMessage.trim() && !file)}
                 >
-                  <Send className="w-5 h-5" />
+                  {isSending ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
                 </button>
               </form>
 
@@ -225,7 +307,6 @@ export default function ChatPage() {
                   <div className="text-sm text-foreground">{file.name}</div>
                 </div>
               )}
-
             </div>
           </>
         ) : (
