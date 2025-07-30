@@ -18,6 +18,7 @@ import { AdminSidebar } from "./side-bar-components/admin-sidebar";
 import React from "react";
 import { ModeToggle } from "@/components/theme-trigger";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 interface SidebarWrapperProps {
   children: React.ReactNode;
@@ -33,13 +34,38 @@ export function SidebarWrapper({
   breadcrumbItems = [{ label: "Dashboard", active: true }],
 }: SidebarWrapperProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
   
-  // Determine which sidebar to render based on the current path
+  // Determine which sidebar to render based on the current path and user role
   const renderSidebar = () => {
     if (pathname.startsWith("/admin")) {
       return <AdminSidebar />;
     } else if (pathname.startsWith("/owner")) {
       return <OwnerSidebar />;
+    } else if (pathname.startsWith("/posts") || pathname.startsWith("/post-management")) {
+      // For posts and post-management routes, determine sidebar based on user role
+      if (user?.role === "ADMIN") {
+        return <AdminSidebar />;
+      } else if (user?.role === "OWNER") {
+        return <OwnerSidebar />;
+      } else {
+        // Default to AdminSidebar for other roles
+        return <AdminSidebar />;
+      }
+    } else if (pathname.startsWith("/user-roles") || pathname.startsWith("/manage-users")) {
+      // These are admin-only routes
+      return <AdminSidebar />;
+    } else if (pathname.startsWith("/profile") || pathname.startsWith("/dashboard") || 
+               pathname.startsWith("/featured-businesses") || pathname.startsWith("/business-profile")) {
+      // These routes can be accessed by both admin and owner, determine based on user role
+      if (user?.role === "ADMIN") {
+        return <AdminSidebar />;
+      } else if (user?.role === "OWNER") {
+        return <OwnerSidebar />;
+      } else {
+        // Default to AdminSidebar for other roles
+        return <AdminSidebar />;
+      }
     } else {
       return <AppSidebar />;
     }

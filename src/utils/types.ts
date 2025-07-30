@@ -210,3 +210,61 @@ export interface UserPresence {
   status: UserStatus;
   lastActive: string;
 }
+
+export enum PostType {
+  JOB_LISTING = 'JOB_LISTING',
+  ANNOUNCEMENT = 'ANNOUNCEMENT',
+  NEWS = 'NEWS',
+  EVENT = 'EVENT',
+  PROMOTION = 'PROMOTION',
+  GENERAL = 'GENERAL',
+}
+
+export interface PostingAttachment {
+  id: string;
+  url: string;
+  fileName?: string;
+  fileType?: string;
+  size?: number;
+  uploadedAt: string;
+  postingId: string;
+}
+
+export interface Posting {
+  id: string;
+  title: string;
+  content: string;
+  postType: PostType;
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  organizationId: string;
+  createdById: string;
+  organization?: {
+    id: string;
+    name: string;
+    logo?: string;
+    description?: string;
+  };
+  createdBy?: {
+    id: string;
+    name?: string;
+    email: string;
+  };
+  attachments: PostingAttachment[];
+}
+
+export interface CreatePostingRequest {
+  title: string;
+  content: string;
+  postType: PostType;
+  organizationId?: string;
+  isPublished?: boolean;
+}
+
+export interface UpdatePostingRequest {
+  title?: string;
+  content?: string;
+  postType?: PostType;
+  isPublished?: boolean;
+}

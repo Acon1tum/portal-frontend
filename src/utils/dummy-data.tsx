@@ -20,7 +20,7 @@ import {
 export const dummyData = {
   teams: [
     {
-      name: "Quanby Solutions Inc.",
+      name: "Quanby Solutions Inc.",  
       logo: "/qby.png",
       plan: "Quanby Solutions Inc.",
     },

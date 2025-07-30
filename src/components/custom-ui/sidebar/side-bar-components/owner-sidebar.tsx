@@ -12,7 +12,8 @@ import {
   Building2,
   LineChart,
   FileText,
-  Clock
+  Clock,
+  Newspaper
 } from "lucide-react";
 
 import Dashboard from "@/app/(dashboard)/dashboard/page";
@@ -85,6 +86,16 @@ export function OwnerSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
             url: "/owner/company/documents",
           },
         ],
+      },
+      {
+        title: "Posts",
+        url: "/posts",
+        icon: Newspaper,
+      },
+      {
+        title: "Post Management",
+        url: "/post-management",
+        icon: Newspaper,
       }, 
 
       {

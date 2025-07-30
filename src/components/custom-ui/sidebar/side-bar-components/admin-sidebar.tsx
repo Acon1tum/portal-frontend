@@ -15,7 +15,8 @@ import {
   BarChart,
   AlertTriangle,
   Database,
-  MessageSquare
+  MessageSquare,
+  Newspaper
 } from "lucide-react";
 
 import { NavMain } from "./nav-main";
@@ -81,6 +82,16 @@ const adminNavData = {
       //     url: "/admin/security/lockout-rules",
       //   },
       // ],
+    },
+    {
+      title: "Posts",
+      url: "/posts",
+      icon: Newspaper,
+    },
+    {
+      title: "Post Management",
+      url: "/post-management",
+      icon: Newspaper,
     },
     // {
     //   title: "Monitoring",
