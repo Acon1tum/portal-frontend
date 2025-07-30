@@ -21,6 +21,18 @@ export default function ViewPostPage() {
 
   const postId = params.id as string;
 
+  // Check if current user is the post owner
+  const isPostOwner = user && posting && (
+    user.id === posting.createdById || 
+    user.email === posting.createdBy?.email
+  );
+
+  // Check if user is admin (can manage all posts)
+  const isAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN';
+
+  // Check if user can edit this post
+  const canEditPost = isPostOwner || isAdmin;
+
   useEffect(() => {
     const fetchPosting = async () => {
       try {
@@ -134,36 +146,40 @@ export default function ViewPostPage() {
         </div>
 
         <div className="flex gap-2">
-          <Link href={`/posts/edit/${posting.id}`}>
-            <Button variant="outline">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            onClick={handleTogglePublish}
-          >
-            {posting.isPublished ? (
-              <>
-                <EyeOff className="w-4 h-4 mr-2" />
-                Unpublish
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4 mr-2" />
-                Publish
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleDelete}
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete
-          </Button>
+          {canEditPost && (
+            <>
+              <Link href={`/posts/edit/${posting.id}`}>
+                <Button variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                onClick={handleTogglePublish}
+              >
+                {posting.isPublished ? (
+                  <>
+                    <EyeOff className="w-4 h-4 mr-2" />
+                    Unpublish
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Publish
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleDelete}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -206,7 +222,12 @@ export default function ViewPostPage() {
                         </p>
                       </div>
                       <Button variant="outline" size="sm" asChild>
-                        <a href={attachment.url} target="_blank" rel="noopener noreferrer">
+                        <a 
+                          href={attachment.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          download={attachment.fileName}
+                        >
                           Download
                         </a>
                       </Button>
@@ -268,46 +289,48 @@ export default function ViewPostPage() {
           </Card>
 
           {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleTogglePublish}
-              >
-                {posting.isPublished ? (
-                  <>
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    Unpublish Post
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-4 h-4 mr-2" />
-                    Publish Post
-                  </>
-                )}
-              </Button>
-              
-              <Link href={`/posts/edit/${posting.id}`}>
-                <Button variant="outline" className="w-full">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Post
+          {canEditPost && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleTogglePublish}
+                >
+                  {posting.isPublished ? (
+                    <>
+                      <EyeOff className="w-4 h-4 mr-2" />
+                      Unpublish Post
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4 mr-2" />
+                      Publish Post
+                    </>
+                  )}
                 </Button>
-              </Link>
+                
+                <Link href={`/posts/edit/${posting.id}`}>
+                  <Button variant="outline" className="w-full">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Post
+                  </Button>
+                </Link>
 
-              <Button
-                variant="outline"
-                className="w-full text-destructive hover:text-destructive"
-                onClick={handleDelete}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Post
-              </Button>
-            </CardContent>
-          </Card>
+                <Button
+                  variant="outline"
+                  className="w-full text-destructive hover:text-destructive"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Post
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

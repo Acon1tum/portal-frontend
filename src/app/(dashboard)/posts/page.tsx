@@ -13,6 +13,77 @@ import { PostType } from "@/utils/types";
 import Link from "next/link";
 import Image from "next/image";
 
+// ImageWithFallback component
+interface ImageWithFallbackProps {
+  attachment: { id: string; url?: string; fileName?: string };
+  getViewableImageUrl: (attachment: { id: string; url?: string }) => Promise<string>;
+}
+
+function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbackProps) {
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      setIsLoading(true);
+      setHasError(false);
+      
+      try {
+        const url = await getViewableImageUrl(attachment);
+        if (url) {
+          setImageUrl(url);
+        } else {
+          setHasError(true);
+        }
+      } catch (error) {
+        console.error('Failed to load image:', error);
+        setHasError(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadImage();
+  }, [attachment, getViewableImageUrl]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full text-muted-foreground">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm">Loading image...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError || !imageUrl) {
+    return (
+      <div className="flex items-center justify-center h-full text-muted-foreground">
+        <div className="text-center">
+          <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <p className="text-sm font-medium">{attachment.fileName || 'Attachment'}</p>
+          <p className="text-xs opacity-75">Click &quot;View Full Post&quot; to download</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={imageUrl}
+      alt={attachment.fileName || 'Post image'}
+      fill
+      className="object-cover"
+      sizes="(max-width: 768px) 100vw, 600px"
+      onError={() => setHasError(true)}
+    />
+  );
+}
+
 export default function PostsPage() {
   const { postings, loading, error, fetchPostings } = usePostings();
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,6 +138,30 @@ export default function PostsPage() {
 
   const isImageFile = (fileType: string) => {
     return fileType.startsWith('image/');
+  };
+
+  // Function to get viewable image URL
+  const getViewableImageUrl = async (attachment: { id: string; url?: string }) => {
+    if (!attachment || !attachment.url) return '';
+
+    const url = attachment.url.trim();
+    
+    // If it's already a data URL, use it directly
+    if (url.startsWith('data:')) {
+      return url;
+    }
+    
+    // If it's a regular URL, use it
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // If it's a blob URL, we can't use it (it's already been revoked or is invalid)
+    if (url.startsWith('blob:')) {
+      return '';
+    }
+    
+    return '';
   };
 
   if (loading) {
@@ -208,12 +303,9 @@ export default function PostsPage() {
                 {imageAttachment && (
                   <div className="px-6 pb-4">
                     <div className="relative w-full h-64 bg-muted rounded-lg overflow-hidden">
-                      <Image
-                        src={imageAttachment.url || ''}
-                        alt={imageAttachment.fileName || 'Post image'}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 600px"
+                      <ImageWithFallback 
+                        attachment={imageAttachment}
+                        getViewableImageUrl={getViewableImageUrl}
                       />
                     </div>
                   </div>

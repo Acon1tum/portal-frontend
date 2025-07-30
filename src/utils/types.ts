@@ -260,6 +260,12 @@ export interface CreatePostingRequest {
   postType: PostType;
   organizationId?: string;
   isPublished?: boolean;
+  attachments?: {
+    url: string;
+    fileName?: string;
+    fileType?: string;
+    size?: number;
+  }[];
 }
 
 export interface UpdatePostingRequest {
