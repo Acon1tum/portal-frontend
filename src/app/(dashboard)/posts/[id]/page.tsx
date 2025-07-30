@@ -66,13 +66,13 @@ export default function ViewPostPage() {
 
   const getPostTypeColor = (type: PostType) => {
     switch (type) {
-      case PostType.JOB_LISTING: return "bg-blue-100 text-blue-800";
-      case PostType.ANNOUNCEMENT: return "bg-yellow-100 text-yellow-800";
-      case PostType.NEWS: return "bg-green-100 text-green-800";
-      case PostType.EVENT: return "bg-purple-100 text-purple-800";
-      case PostType.PROMOTION: return "bg-pink-100 text-pink-800";
-      case PostType.GENERAL: return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
+      case PostType.JOB_LISTING: return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
+      case PostType.ANNOUNCEMENT: return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
+      case PostType.NEWS: return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
+      case PostType.EVENT: return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300";
+      case PostType.PROMOTION: return "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300";
+      case PostType.GENERAL: return "bg-muted text-muted-foreground";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -196,11 +196,11 @@ export default function ViewPostPage() {
                   {posting.attachments.map((attachment) => (
                     <div
                       key={attachment.id}
-                      className="flex items-center gap-3 p-3 border rounded-lg"
+                      className="flex items-center gap-3 p-3 border border-border rounded-lg"
                     >
                       <FileText className="w-5 h-5 text-muted-foreground" />
                       <div className="flex-1">
-                        <p className="font-medium">{attachment.fileName || 'Unnamed file'}</p>
+                        <p className="font-medium text-foreground">{attachment.fileName || 'Unnamed file'}</p>
                         <p className="text-sm text-muted-foreground">
                           {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
                         </p>
