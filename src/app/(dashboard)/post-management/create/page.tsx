@@ -14,6 +14,21 @@ import { usePostings } from "@/hooks/usePostings";
 import { PostType, CreatePostingRequest } from "@/utils/types";
 import Link from "next/link";
 
+// Helper function to convert file to base64
+const convertFileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+      const base64Data = base64String.split(',')[1];
+      resolve(base64Data);
+    };
+    reader.onerror = error => reject(error);
+  });
+};
+
 export default function CreatePostPage() {
   const router = useRouter();
   const { createPosting, addAttachment } = usePostings();
@@ -55,9 +70,10 @@ export default function CreatePostPage() {
       // Upload attachments if any
       if (attachments.length > 0) {
         for (const file of attachments) {
-          // For now, we'll use a placeholder URL. In a real app, you'd upload to a file service
+          // Convert file to base64
+          const base64Data = await convertFileToBase64(file);
           const attachmentData = {
-            url: URL.createObjectURL(file), // This is temporary - in production, upload to cloud storage
+            url: `data:${file.type};base64,${base64Data}`,
             fileName: file.name,
             fileType: file.type,
             size: file.size,

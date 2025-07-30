@@ -57,8 +57,7 @@ class PostingService {
 
   // Create new posting
   async createPosting(data: CreatePostingRequest): Promise<Posting> {
-    // Temporarily use test endpoint for debugging
-    const response = await fetch(`${API_URL}/postings/test/create`, {
+    const response = await fetch(`${API_URL}/postings/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

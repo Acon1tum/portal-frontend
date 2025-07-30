@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Calendar, Building, User, FileText } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Calendar, Building, User, FileText, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { postingService } from "@/service/postingService";
 import { useAuth } from "@/lib/auth-context";
 import { Posting, PostType } from "@/utils/types";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function ViewPostPage() {
   const params = useParams();
@@ -32,6 +33,31 @@ export default function ViewPostPage() {
 
   // Check if user can edit this post
   const canEditPost = isPostOwner || isAdmin;
+
+  // Helper function to check if file is an image
+  const isImageFile = (fileType: string) => {
+    return fileType.startsWith('image/');
+  };
+
+  // Helper function to get viewable image URL
+  const getViewableImageUrl = (attachment: { url: string }) => {
+    if (!attachment.url) return '';
+    
+    const url = attachment.url.trim();
+    
+    // If it's a data URL, use it directly
+    if (url.startsWith('data:')) {
+      return url;
+    }
+    
+    // If it's a regular URL, use it
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // For blob URLs or other invalid URLs, return empty
+    return '';
+  };
 
   useEffect(() => {
     const fetchPosting = async () => {
@@ -208,29 +234,95 @@ export default function ViewPostPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {posting.attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="flex items-center gap-3 p-3 border border-border rounded-lg"
-                    >
-                      <FileText className="w-5 h-5 text-muted-foreground" />
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{attachment.fileName || 'Unnamed file'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <a 
-                          href={attachment.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          download={attachment.fileName}
-                        >
-                          Download
-                        </a>
-                      </Button>
+                    <div key={attachment.id}>
+                      {isImageFile(attachment.fileType) ? (
+                        // Image display - Facebook style
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted">
+                              {getViewableImageUrl(attachment) ? (
+                                <Image
+                                  src={getViewableImageUrl(attachment)}
+                                  alt={attachment.fileName || 'Attachment'}
+                                  fill
+                                  className="object-cover"
+                                  sizes="64px"
+                                />
+                              ) : (
+                                <div className="flex items-center justify-center h-full text-muted-foreground">
+                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-medium text-foreground">{attachment.fileName || 'Unnamed image'}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                              </p>
+                            </div>
+                            <Button variant="outline" size="sm" asChild>
+                              <a 
+                                href={attachment.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                download={attachment.fileName}
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </a>
+                            </Button>
+                          </div>
+                          {/* Large image preview */}
+                          {getViewableImageUrl(attachment) ? (
+                            <div className="relative w-full max-w-2xl mx-auto">
+                              <Image
+                                src={getViewableImageUrl(attachment)}
+                                alt={attachment.fileName || 'Attachment'}
+                                width={800}
+                                height={600}
+                                className="w-full h-auto rounded-lg object-contain max-h-96"
+                                sizes="(max-width: 768px) 100vw, 800px"
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center p-8 border border-border rounded-lg bg-muted">
+                              <div className="text-center text-muted-foreground">
+                                <svg className="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <p className="font-medium">Image preview unavailable</p>
+                                <p className="text-sm opacity-75">Click download to view the image</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        // Non-image file display
+                        <div className="flex items-center gap-3 p-3 border border-border rounded-lg">
+                          <FileText className="w-5 h-5 text-muted-foreground" />
+                          <div className="flex-1">
+                            <p className="font-medium text-foreground">{attachment.fileName || 'Unnamed file'}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                            </p>
+                          </div>
+                          <Button variant="outline" size="sm" asChild>
+                            <a 
+                              href={attachment.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              download={attachment.fileName}
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download
+                            </a>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
