@@ -175,7 +175,7 @@ export default function CreatePostPage() {
         }
       });
     };
-  }, []);
+  }, [attachments]);
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">

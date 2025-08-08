@@ -1,28 +1,20 @@
 import { FC, useState } from "react";
-import { User, UserStatus, AttachmentType } from "@/utils/types";
+import { UserStatus, MessageStatus } from "@/utils/types";
 import { formatDistanceToNow, format } from "date-fns";
 import { Check, CheckCheck, Trash2, Reply, Copy, MoreHorizontal, Image, FileText, X } from "lucide-react";
 import UserAvatar from "./user-avatar";
-
-interface Attachment {
-  id: string;
-  type: AttachmentType;
-  url: string;
-  name: string;
-  size: number;
-}
+import { ChatMessage } from "@/service/chatService";
 
 interface ChatMessageProps {
-  message: {
-    id: string;
-    content: string;
-    timestamp: string;
-    senderId: string;
-    isRead?: boolean;
-    attachments?: Attachment[];
-  };
+  message: ChatMessage;
   isOutgoing: boolean;
-  sender: User | null;
+  sender: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  } | null;
   onDelete?: (messageId: string) => void;
   onReply?: (messageId: string) => void;
 }
@@ -38,11 +30,11 @@ const ChatMessage: FC<ChatMessageProps> = ({
   const [showFullTime, setShowFullTime] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  const formattedTime = formatDistanceToNow(new Date(message.timestamp), {
+  const formattedTime = formatDistanceToNow(new Date(message.createdAt), {
     addSuffix: true,
   });
   
-  const fullTime = format(new Date(message.timestamp), 'PPpp');
+  const fullTime = format(new Date(message.createdAt), 'PPpp');
   
   const handleCopyText = () => {
     navigator.clipboard.writeText(message.content);
@@ -63,47 +55,44 @@ const ChatMessage: FC<ChatMessageProps> = ({
     setShowActions(false);
   };
   
-  const renderAttachment = (attachment: Attachment) => {
-    switch (attachment.type) {
-      case AttachmentType.IMAGE:
-        return (
-          <div 
-            key={attachment.id}
-            className="mt-2 relative cursor-pointer"
-            onClick={() => setImagePreview(attachment.url)}
-          >
-            <div className="rounded-lg overflow-hidden max-w-xs max-h-60">
-              <img 
-                src={attachment.url} 
-                alt={attachment.name} 
-                className="object-cover w-full h-full"
-              />
-            </div>
+  const renderAttachment = (attachment: ChatMessage['attachments'][0]) => {
+    if (!attachment) return null;
+    
+    const isImage = attachment.fileType?.startsWith('image/');
+    
+    if (isImage) {
+      return (
+        <div 
+          key={attachment.id}
+          className="mt-2 relative cursor-pointer"
+          onClick={() => setImagePreview(attachment.url)}
+        >
+          <div className="rounded-lg overflow-hidden max-w-xs max-h-60">
+            <img 
+              src={attachment.url} 
+              alt={attachment.fileName || 'Image'} 
+              className="object-cover w-full h-full"
+            />
           </div>
-        );
-      case AttachmentType.FILE:
-      case AttachmentType.AUDIO:
-      case AttachmentType.VIDEO:
-        return (
-          <div 
-            key={attachment.id}
-            className="mt-2 bg-muted rounded-lg p-3 flex items-center max-w-xs"
-          >
-            <div className="mr-3">
-              {attachment.type === AttachmentType.FILE && <FileText className="w-6 h-6 text-gray-500" />}
-              {attachment.type === AttachmentType.AUDIO && <Image className="w-6 h-6 text-gray-500" />}
-              {attachment.type === AttachmentType.VIDEO && <Image className="w-6 h-6 text-gray-500" />}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium truncate">{attachment.name}</p>
-              <p className="text-xs text-gray-500">
-                {(attachment.size / 1024).toFixed(2)} KB
-              </p>
-            </div>
+        </div>
+      );
+    } else {
+      return (
+        <div 
+          key={attachment.id}
+          className="mt-2 bg-muted rounded-lg p-3 flex items-center max-w-xs"
+        >
+          <div className="mr-3">
+            <FileText className="w-6 h-6 text-gray-500" />
           </div>
-        );
-      default:
-        return null;
+          <div className="overflow-hidden">
+            <p className="text-sm font-medium truncate">{attachment.fileName || 'File'}</p>
+            <p className="text-xs text-gray-500">
+              {attachment.size ? `${(attachment.size / 1024).toFixed(2)} KB` : 'Unknown size'}
+            </p>
+          </div>
+        </div>
+      );
     }
   };
   
@@ -155,8 +144,10 @@ const ChatMessage: FC<ChatMessageProps> = ({
             >
               {isOutgoing && (
                 <>
-                  {message.isRead ? (
+                  {message.status === MessageStatus.READ ? (
                     <CheckCheck className="w-3 h-3 mr-1 text-blue-500" />
+                  ) : message.status === MessageStatus.DELIVERED ? (
+                    <CheckCheck className="w-3 h-3 mr-1 text-gray-400" />
                   ) : (
                     <Check className="w-3 h-3 mr-1" />
                   )}

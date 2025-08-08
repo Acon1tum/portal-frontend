@@ -1,8 +1,14 @@
 import { FC } from "react";
-import { User, UserStatus } from "@/utils/types";
+import { UserStatus } from "@/utils/types";
 
 interface UserAvatarProps {
-  user: User | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  } | null;
   size?: "sm" | "md" | "lg";
   showStatus?: boolean;
   status?: UserStatus;
@@ -53,21 +59,11 @@ const UserAvatar: FC<UserAvatarProps> = ({
 
   return (
     <div className="relative">
-      {user.business?.logo ? (
-        <div className={`${getSizeClass()} rounded-full overflow-hidden`}>
-          <img
-            src={user.business.logo}
-            alt={user.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ) : (
-        <div
-          className={`${getSizeClass()} rounded-full bg-gradient-to-r from-chart-1 to-chart-3 flex items-center justify-center text-card-foreground font-semibold`}
-        >
-          {user.name.charAt(0)}
-        </div>
-      )}
+      <div
+        className={`${getSizeClass()} rounded-full bg-gradient-to-r from-chart-1 to-chart-3 flex items-center justify-center text-card-foreground font-semibold`}
+      >
+        {user.name.charAt(0)}
+      </div>
       {showStatus && (
         <div
           className={`absolute bottom-0 right-0 ${getStatusSizeClass()} ${getStatusColorClass()} rounded-full border-2 border-background`}

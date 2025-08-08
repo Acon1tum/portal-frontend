@@ -206,7 +206,70 @@ class ChatService {
     }
   }
 
-  // Get users for chat contacts
+  // Get users with conversations (contacts)
+  async getChatContacts(userId: string): Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  }>> {
+    try {
+      const response = await fetch(`${API_URL}/messages/contacts/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch contacts: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      throw error;
+    }
+  }
+
+  // Search users for starting new conversations
+  async searchUsersForNewChat(userId: string, query?: string): Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  }>> {
+    try {
+      const url = new URL(`${API_URL}/messages/search-users/${userId}`);
+      if (query) {
+        url.searchParams.append('q', query);
+      }
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to search users: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error searching users:', error);
+      throw error;
+    }
+  }
+
+  // Get users for chat contacts (legacy method - keeping for backward compatibility)
   async getChatUsers(): Promise<Array<{
     id: string;
     name: string;

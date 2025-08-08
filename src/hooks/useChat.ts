@@ -33,6 +33,20 @@ interface UseChatReturn {
   deleteMessage: (messageId: string) => Promise<void>;
   updateMessageStatus: (messageId: string, status: string) => Promise<void>;
   refreshMessages: () => Promise<void>;
+  searchUsersForNewChat: (query?: string) => Promise<Array<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  }>>;
+  startNewConversation: (user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  }) => void;
 }
 
 export const useChat = (): UseChatReturn => {
@@ -54,6 +68,40 @@ export const useChat = (): UseChatReturn => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Load contacts (users with conversations)
+  const loadContacts = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const contactsData = await chatService.getChatContacts(user.id);
+      setContacts(contactsData);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading contacts:', err);
+      setError('Failed to load contacts');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Load messages between current user and selected contact
+  const loadMessages = useCallback(async () => {
+    if (!user || !selectedContact) return;
+
+    try {
+      setLoading(true);
+      const messagesData = await chatService.getMessagesBetweenUsers(user.id, selectedContact.id);
+      setMessages(messagesData);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading messages:', err);
+      setError('Failed to load messages');
+    } finally {
+      setLoading(false);
+    }
+  }, [user, selectedContact]);
 
   // WebSocket handlers
   const handleNewMessage = useCallback((message: ChatMessage) => {
@@ -82,7 +130,22 @@ export const useChat = (): UseChatReturn => {
       console.log('Adding new message to chat:', message.id);
       return [...prev, message];
     });
-  }, []);
+
+    // Update contacts if this is a new conversation
+    setContacts(prev => {
+      const isNewConversation = !prev.some(contact => 
+        contact.id === message.senderId || contact.id === message.userId
+      );
+      
+      if (isNewConversation && user) {
+        // Refresh contacts to get the updated list with proper user data
+        loadContacts();
+        return prev; // Return current contacts, will be updated by loadContacts
+      }
+      
+      return prev;
+    });
+  }, [user, loadContacts]);
 
   const handleMessageStatusUpdate = useCallback((messageId: string, status: MessageStatus) => {
     setMessages(prev => 
@@ -103,42 +166,6 @@ export const useChat = (): UseChatReturn => {
     onMessageDeleted: handleMessageDeleted,
     selectedContactId: selectedContact?.id,
   });
-
-  // Load contacts (users)
-  const loadContacts = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      const users = await chatService.getChatUsers();
-      // Filter out the current user
-      const filteredUsers = users.filter((u) => u.id !== user.id);
-      setContacts(filteredUsers);
-      setError(null);
-    } catch (err) {
-      console.error('Error loading contacts:', err);
-      setError('Failed to load contacts');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  // Load messages between current user and selected contact
-  const loadMessages = useCallback(async () => {
-    if (!user || !selectedContact) return;
-
-    try {
-      setLoading(true);
-      const messagesData = await chatService.getMessagesBetweenUsers(user.id, selectedContact.id);
-      setMessages(messagesData);
-      setError(null);
-    } catch (err) {
-      console.error('Error loading messages:', err);
-      setError('Failed to load messages');
-    } finally {
-      setLoading(false);
-    }
-  }, [user, selectedContact]);
 
   // Send a message
   const sendMessage = useCallback(async (content: string, receiverId: string) => {
@@ -226,10 +253,50 @@ export const useChat = (): UseChatReturn => {
     setSelectedContact(contact);
   }, []);
 
+  // Search users for new conversations
+  const searchUsersForNewChat = useCallback(async (query?: string) => {
+    if (!user) return [];
+    
+    try {
+      const users = await chatService.searchUsersForNewChat(user.id, query);
+      return users;
+    } catch (err) {
+      console.error('Error searching users:', err);
+      setError('Failed to search users');
+      return [];
+    }
+  }, [user]);
+
+  // Start a new conversation
+  const startNewConversation = useCallback((user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  }) => {
+    // Add the user to contacts if not already present
+    setContacts(prev => {
+      const contactExists = prev.some(contact => contact.id === user.id);
+      if (!contactExists) {
+        return [...prev, user];
+      }
+      return prev;
+    });
+    
+    // Select the user as the current contact
+    selectContact(user);
+    
+    // Clear messages for the new conversation
+    setMessages([]);
+  }, [selectContact]);
+
   // Refresh messages
   const refreshMessages = useCallback(async () => {
     await loadMessages();
   }, [loadMessages]);
+
+
 
   // Load contacts on mount
   useEffect(() => {
@@ -252,5 +319,7 @@ export const useChat = (): UseChatReturn => {
     deleteMessage,
     updateMessageStatus,
     refreshMessages,
+    searchUsersForNewChat,
+    startNewConversation,
   };
 }; 

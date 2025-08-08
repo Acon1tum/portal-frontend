@@ -1,10 +1,16 @@
 import { FC, useState } from "react";
 import { MoreHorizontal, Phone, Video, Info, X, FileText, Bell, BellOff, Search, UserPlus } from "lucide-react";
-import { User, UserStatus } from "@/utils/types";
+import { UserStatus } from "@/utils/types";
 import UserAvatar from "./user-avatar";
 
 interface ChatHeaderProps {
-  contact: User;
+  contact: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  };
 }
 
 const ChatHeader: FC<ChatHeaderProps> = ({ contact }) => {
@@ -25,7 +31,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({ contact }) => {
             <h2 className="font-semibold">{contact.name}</h2>
             <div className="flex items-center">
               <span className="text-sm text-muted-foreground">
-                {contact.role.name} • {contact.email}
+                {contact.role} • {contact.email}
               </span>
             </div>
           </div>
@@ -83,7 +89,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({ contact }) => {
                 status={UserStatus.ONLINE} 
               />
               <h3 className="mt-4 font-semibold text-lg">{contact.name}</h3>
-              <p className="text-gray-500 text-sm">{contact.role.name}</p>
+              <p className="text-gray-500 text-sm">{contact.role}</p>
             </div>
             
             {/* Contact details */}
@@ -101,48 +107,30 @@ const ChatHeader: FC<ChatHeaderProps> = ({ contact }) => {
                   </div>
                   <div className="flex">
                     <span className="text-muted-foreground w-24 flex-shrink-0">Role:</span>
-                    <span className="text-card-foreground">{contact.role.name}</span>
+                    <span className="text-card-foreground">{contact.role}</span>
                   </div>
                   <div className="flex">
-                    <span className="text-muted-foreground w-24 flex-shrink-0">Sex:</span>
-                    <span className="text-card-foreground">{contact.sex}</span>
+                    <span className="text-muted-foreground w-24 flex-shrink-0">User Type:</span>
+                    <span className="text-card-foreground">{contact.userType || 'N/A'}</span>
                   </div>
                 </div>
               </div>
               
               <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Permissions</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">User Information</h4>
                 <div className="flex flex-wrap">
-                  {contact.role.permissions.map((permission) => (
-                    <span 
-                      key={permission.id} 
-                      className="inline-block bg-accent text-accent-foreground text-xs px-2 py-1 rounded mr-1 mb-1"
-                    >
-                      {permission.name.replace(/_/g, ' ')}
+                  <span className="inline-block bg-accent text-accent-foreground text-xs px-2 py-1 rounded mr-1 mb-1">
+                    {contact.role}
+                  </span>
+                  {contact.userType && (
+                    <span className="inline-block bg-accent text-accent-foreground text-xs px-2 py-1 rounded mr-1 mb-1">
+                      {contact.userType}
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
               
-              {contact.business && (
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2">Business Information</h4>
-                  <div className="space-y-3">
-                    <div className="flex">
-                      <span className="text-muted-foreground w-24 flex-shrink-0">Name:</span>
-                      <span className="text-card-foreground">{contact.business.name}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground w-24 flex-shrink-0">Industry:</span>
-                      <span className="text-card-foreground">{contact.business.industry}</span>
-                    </div>
-                    <div className="flex">
-                      <span className="text-muted-foreground w-24 flex-shrink-0">Location:</span>
-                      <span className="text-card-foreground">{contact.business.location}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+
               
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">Actions</h4>

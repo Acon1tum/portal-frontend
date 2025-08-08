@@ -1,84 +1,165 @@
-import { FC, useState } from "react";
-import { Search } from "lucide-react";
-import { User, UserStatus } from "@/utils/types";
-import UserAvatar from "./user-avatar";
-interface ContactsListProps {
-  contacts: User[];
-  currentUser: User | null;
-  selectedContact: User | null;
-  onSelectContact: (contact: User) => void;
+import { useState } from 'react';
+import { Search, Plus, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  userType?: string;
 }
 
-const ContactsList: FC<ContactsListProps> = ({
+interface ContactListProps {
+  contacts: Contact[];
+  currentUser: Contact | null;
+  selectedContact: Contact | null;
+  onSelectContact: (contact: Contact) => void;
+  onSearchUsers?: (query: string) => Promise<Contact[]>;
+  onStartNewConversation?: (user: Contact) => void;
+}
+
+export default function ContactList({
   contacts,
   currentUser,
   selectedContact,
   onSelectContact,
-}) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  
-  // Filter out the current user from contacts and apply search
-  const filteredContacts = contacts.filter(
-    (contact) => 
-      contact.id !== currentUser?.id && 
-      (searchTerm === "" || 
-       contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       contact.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  onSearchUsers,
+  onStartNewConversation
+}: ContactListProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Contact[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    
+    if (!query.trim() || !onSearchUsers) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await onSearchUsers(query);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching users:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleStartNewConversation = (user: Contact) => {
+    if (onStartNewConversation) {
+      onStartNewConversation(user);
+    }
+    setShowSearch(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-4">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-muted-foreground" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search contacts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-input rounded-lg bg-muted focus:outline-none focus:ring-primary focus:border-primary text-foreground"
-          />
+    <div className="flex flex-col h-full">
+      {/* Header with search toggle */}
+      <div className="p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-foreground">Contacts</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowSearch(!showSearch)}
+            className="h-8 w-8 p-0"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
+        
+        {/* Search input */}
+        {showSearch && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto scroll-none">
-        {filteredContacts.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground">
-            No contacts found matching "{searchTerm}"
+      {/* Search results */}
+      {showSearch && searchResults.length > 0 && (
+        <div className="border-b border-border">
+          <div className="p-2 text-xs font-medium text-muted-foreground">
+            Search Results
+          </div>
+          {searchResults.map((user) => (
+            <div
+              key={user.id}
+              className="flex items-center p-3 hover:bg-muted cursor-pointer"
+              onClick={() => handleStartNewConversation(user)}
+            >
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-foreground truncate">
+                  {user.name}
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {user.email}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Loading state for search */}
+      {showSearch && isSearching && (
+        <div className="p-4 text-center">
+          <div className="text-sm text-muted-foreground">Searching...</div>
+        </div>
+      )}
+
+      {/* No search results */}
+      {showSearch && searchQuery && !isSearching && searchResults.length === 0 && (
+        <div className="p-4 text-center">
+          <div className="text-sm text-muted-foreground">No users found</div>
+        </div>
+      )}
+
+      {/* Contacts list */}
+      <div className="flex-1 overflow-y-auto">
+        {contacts.length === 0 ? (
+          <div className="p-4 text-center">
+            <div className="text-sm text-muted-foreground">
+              {showSearch ? 'Search for users to start a conversation' : 'No conversations yet'}
+            </div>
           </div>
         ) : (
-          filteredContacts.map((contact) => (
+          contacts.map((contact) => (
             <div
               key={contact.id}
-              className={`p-4 border-b border-border flex items-center cursor-pointer hover:bg-muted/50 transition-colors ${
-                selectedContact?.id === contact.id ? "bg-accent" : ""
+              className={`flex items-center p-3 hover:bg-muted cursor-pointer ${
+                selectedContact?.id === contact.id ? 'bg-muted' : ''
               }`}
               onClick={() => onSelectContact(contact)}
             >
-              <div className="relative">
-                <UserAvatar 
-                  user={contact} 
-                  size="lg" 
-                  showStatus={true} 
-                  status={contact.id === '1' || contact.id === '2' ? UserStatus.ONLINE : UserStatus.OFFLINE} 
-                />
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                <User className="h-4 w-4 text-primary" />
               </div>
-              <div className="ml-4 flex-1">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-medium text-foreground">{contact.name}</h3>
-                  <span className="text-xs text-muted-foreground">12:45 PM</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-foreground truncate">
+                  {contact.name}
                 </div>
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-sm text-muted-foreground truncate w-40">
-                    {contact.role.name === "Admin" 
-                      ? "Admin privileges enabled" 
-                      : "Regular user"}
-                  </p>
-                  <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-                    2
-                  </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {contact.email}
                 </div>
               </div>
             </div>
@@ -87,6 +168,4 @@ const ContactsList: FC<ContactsListProps> = ({
       </div>
     </div>
   );
-};
-
-export default ContactsList;
+}

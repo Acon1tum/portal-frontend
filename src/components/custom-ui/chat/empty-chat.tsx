@@ -1,9 +1,16 @@
 import { FC } from "react";
 import { MessageSquare } from "lucide-react";
-import { User } from "@/utils/types";
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  userType?: string;
+}
 
 interface EmptyStateProps {
-  contact?: User | null;
+  contact?: Contact | null;
   type: "no-contact" | "no-messages";
 }
 

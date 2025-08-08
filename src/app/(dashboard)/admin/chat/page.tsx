@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/custom-ui/chat/empty-chat";
 import ChatHeader from "@/components/custom-ui/chat/chat-header";
 import ChatMessage from "@/components/custom-ui/chat/chat-message";
-import ContactsList from "@/components/custom-ui/chat/contact-list";
+import ContactList from "@/components/custom-ui/chat/contact-list";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/lib/auth-context";
 import { User, Sex, Attachment, AttachmentType, UserRole, UserType } from "@/utils/types";
@@ -47,6 +47,8 @@ export default function ChatPage() {
     selectContact,
     deleteMessage,
     refreshMessages,
+    searchUsersForNewChat,
+    startNewConversation,
   } = useChat();
 
   const [newMessage, setNewMessage] = useState("");
@@ -103,6 +105,24 @@ export default function ChatPage() {
     } catch (err) {
       console.error("Failed to delete message:", err);
     }
+  };
+
+  const handleStartNewConversation = (user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    userType?: string;
+  }) => {
+    // Transform the user to the expected format and select them
+    const contactUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      userType: user.userType,
+    };
+    selectContact(contactUser);
   };
 
   // Show loading state
@@ -186,14 +206,13 @@ export default function ChatPage() {
     <div className="flex h-screen bg-background">
       {/* Contacts sidebar */}
       <div className="w-1/4 bg-card border-r border-border shadow-sm">
-        <div className="p-4 border-b border-border">
-          <h2 className="text-xl font-semibold text-foreground">Chats</h2>
-        </div>
-        <ContactsList
+        <ContactList
           contacts={contacts.map(transformToUser).filter(Boolean) as User[]}
           currentUser={transformToUser(user as BackendUser)}
           selectedContact={selectedContact ? transformToUser(selectedContact) : null}
           onSelectContact={(contact) => selectContact(contact as BackendUser)}
+          onSearchUsers={searchUsersForNewChat}
+          onStartNewConversation={handleStartNewConversation}
         />
       </div>
 

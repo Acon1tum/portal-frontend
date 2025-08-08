@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Filter, Eye, Edit, Trash2, EyeOff, Calendar, Building, User, ExternalLink } from "lucide-react";
+import { Plus, Search, Filter, Eye, Edit, Trash2, EyeOff, Calendar, Building, User, ExternalLink, Paperclip, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +28,7 @@ export default function PostManagementPage() {
     let filtered = postings;
 
     // If user is not superadmin, only show their own posts
-    if (user?.role !== UserRole.SUPER_ADMIN) {
+    if (user?.role !== UserRole.SUPERADMIN) {
       filtered = postings.filter(posting => 
         posting.createdBy?.id === user?.id || 
         posting.createdBy?.email === user?.email
@@ -87,6 +87,13 @@ export default function PostManagementPage() {
     });
   };
 
+  // Helper function to check if file is an image
+  const isImageFile = (fileType: string) => {
+    return fileType.startsWith('image/');
+  };
+
+
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -122,7 +129,7 @@ export default function PostManagementPage() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Post Management</h1>
           <p className="text-muted-foreground">
-            {user?.role === UserRole.SUPER_ADMIN 
+            {user?.role === UserRole.SUPERADMIN 
               ? "Manage your organization's posts and announcements" 
               : "Manage your posts and announcements"
             }
@@ -219,6 +226,37 @@ export default function PostManagementPage() {
                 </Badge>
               </div>
 
+              {/* Attachments Preview */}
+              {posting.attachments && posting.attachments.length > 0 && (
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <Paperclip className="w-4 h-4" />
+                    <span>{posting.attachments.length} attachment{posting.attachments.length !== 1 ? 's' : ''}</span>
+                  </div>
+                  
+                  {/* Show first few attachments */}
+                  <div className="flex flex-wrap gap-2">
+                                         {posting.attachments.slice(0, 3).map((attachment) => (
+                       <div key={attachment.id} className="flex items-center gap-1 text-xs text-muted-foreground">
+                         {attachment.fileType && isImageFile(attachment.fileType) ? (
+                           <ImageIcon className="w-3 h-3" />
+                         ) : (
+                           <Paperclip className="w-3 h-3" />
+                         )}
+                         <span className="truncate max-w-20">
+                           {attachment.fileName || 'Unnamed file'}
+                         </span>
+                       </div>
+                     ))}
+                    {posting.attachments.length > 3 && (
+                      <span className="text-xs text-muted-foreground">
+                        +{posting.attachments.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                 {posting.organization && (
                   <div className="flex items-center gap-1">
@@ -285,7 +323,7 @@ export default function PostManagementPage() {
       {filteredPostings.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground mb-4">
-            {user?.role === UserRole.SUPER_ADMIN 
+            {user?.role === UserRole.SUPERADMIN 
               ? "No posts found" 
               : "No posts found. Create your first post to get started."
             }
@@ -293,7 +331,7 @@ export default function PostManagementPage() {
           <Link href="/post-management/create">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              {user?.role === UserRole.SUPER_ADMIN 
+              {user?.role === UserRole.SUPERADMIN 
                 ? "Create Your First Post" 
                 : "Create Post"
               }

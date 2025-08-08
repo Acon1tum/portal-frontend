@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Calendar, Building, User, FileText } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Eye, EyeOff, Calendar, Building, User, FileText, Image as ImageIcon, Download } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +28,7 @@ export default function AdminViewPostPage() {
         const data = await postingService.getPostingById(postId);
         
         // Check if user has permission to view this post
-        if (user?.role !== UserRole.SUPER_ADMIN) {
+        if (user?.role !== UserRole.SUPERADMIN) {
           const isOwner = data.createdBy?.id === user?.id || data.createdBy?.email === user?.email;
           if (!isOwner) {
             setError("You don't have permission to view this post");
@@ -95,6 +96,31 @@ export default function AdminViewPostPage() {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  // Helper function to check if file is an image
+  const isImageFile = (fileType: string) => {
+    return fileType.startsWith('image/');
+  };
+
+  // Helper function to get viewable image URL
+  const getViewableImageUrl = (attachment: { url: string }) => {
+    if (!attachment.url) return '';
+    
+    const url = attachment.url.trim();
+    
+    // If it's a data URL, use it directly
+    if (url.startsWith('data:')) {
+      return url;
+    }
+    
+    // If it's a regular URL, use it
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // For blob URLs or other invalid URLs, return empty
+    return '';
   };
 
   if (loading) {
@@ -203,24 +229,53 @@ export default function AdminViewPostPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {posting.attachments.map((attachment) => (
                     <div
                       key={attachment.id}
-                      className="flex items-center gap-3 p-3 border rounded-lg"
+                      className="border rounded-lg overflow-hidden"
                     >
-                      <FileText className="w-5 h-5 text-muted-foreground" />
-                      <div className="flex-1">
-                        <p className="font-medium">{attachment.fileName || 'Unnamed file'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
-                        </p>
+                                             {/* Image Preview */}
+                       {attachment.fileType && isImageFile(attachment.fileType) && getViewableImageUrl(attachment) && (
+                         <div className="relative w-full bg-muted">
+                           <Image
+                             src={getViewableImageUrl(attachment)}
+                             alt={attachment.fileName || 'Attachment'}
+                             width={800}
+                             height={600}
+                             className="w-full h-auto object-contain max-h-64"
+                             onError={() => {
+                               // Next.js Image handles errors gracefully
+                             }}
+                           />
+                         </div>
+                       )}
+                      
+                      {/* File Info */}
+                      <div className="flex items-center gap-3 p-3">
+                        {attachment.fileType && isImageFile(attachment.fileType) ? (
+                          <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                        ) : (
+                          <FileText className="w-5 h-5 text-muted-foreground" />
+                        )}
+                        <div className="flex-1">
+                          <p className="font-medium">{attachment.fileName || 'Unnamed file'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                          <a 
+                            href={attachment.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            download={attachment.fileName}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </a>
+                        </Button>
                       </div>
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={attachment.url} target="_blank" rel="noopener noreferrer">
-                          Download
-                        </a>
-                      </Button>
                     </div>
                   ))}
                 </div>

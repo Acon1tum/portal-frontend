@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/custom-ui/chat/empty-chat";
 import ChatHeader from "@/components/custom-ui/chat/chat-header";
 import ChatMessage from "@/components/custom-ui/chat/chat-message";
-import ContactsList from "@/components/custom-ui/chat/contact-list";
+import ContactList from "@/components/custom-ui/chat/contact-list";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/lib/auth-context";
-import { User, Sex, Attachment, AttachmentType, UserRole, UserType } from "@/utils/types";
+import { User } from "@/utils/types";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
@@ -17,22 +17,23 @@ interface EmojiData {
   native: string;
 }
 
-interface BackendUser {
+export type Contact = {
   id: string;
   name: string;
   email: string;
   role: string;
   userType?: string;
-}
+};
 
-interface BackendAttachment {
-  id: string;
-  url: string;
-  fileName?: string;
-  fileType?: string;
-  size?: number;
-  uploadedAt: string;
-  messageId: string;
+function userToContact(user: User | null | undefined): Contact | null {
+  if (!user) return null;
+  return {
+    id: user.id,
+    name: user.name ?? "Unknown User",
+    email: user.email,
+    role: user.role,
+    userType: user.userType ?? undefined,
+  };
 }
 
 export default function ChatPage() {
@@ -47,6 +48,7 @@ export default function ChatPage() {
     selectContact,
     deleteMessage,
     refreshMessages,
+    searchUsersForNewChat,
   } = useChat();
 
   const [newMessage, setNewMessage] = useState("");
@@ -105,6 +107,18 @@ export default function ChatPage() {
     }
   };
 
+  const handleStartNewConversation = (contact: Contact) => {
+    // Transform the user to the expected format and select them
+    const contactUser = {
+      id: contact.id,
+      name: contact.name,
+      email: contact.email,
+      role: contact.role,
+      userType: contact.userType,
+    };
+    selectContact(contactUser);
+  };
+
   // Show loading state
   if (loading) {
     return (
@@ -153,47 +167,20 @@ export default function ChatPage() {
     );
   }
 
-  // Transform backend user data to frontend User type
-  const transformToUser = (backendUser: BackendUser | null): User | null => {
-    if (!backendUser) return null;
-    return {
-      id: backendUser.id,
-      email: backendUser.email,
-      name: backendUser.name || 'Unknown User',
-      sex: Sex.MALE, // Default value
-      role: backendUser.role as UserRole, // Cast string to enum
-      userType: backendUser.userType as UserType | null, // Cast string to enum
-      currentJobStatus: null,
-      isEmailVerified: true, // Default value
-      accounts: [], // Empty array
-      business: null, // No business
-    };
-  };
-
-  // Transform backend attachments to frontend Attachment format
-  const transformAttachments = (attachments: BackendAttachment[] = []): Attachment[] => {
-    return attachments.map(att => ({
-      id: att.id,
-      type: AttachmentType.FILE, // Default type
-      url: att.url,
-      name: att.fileName || 'file',
-      size: att.size || 0,
-      messageId: att.messageId || '',
-    }));
-  };
+  // Explicitly type contacts to ensure it's Contact[]
+  const typedContacts: Contact[] = contacts as Contact[];
 
   return (
     <div className="flex h-screen bg-background">
       {/* Contacts sidebar */}
       <div className="w-1/4 bg-card border-r border-border shadow-sm">
-        <div className="p-4 border-b border-border">
-          <h2 className="text-xl font-semibold text-foreground">Chats</h2>
-        </div>
-        <ContactsList
-          contacts={contacts.map(transformToUser).filter(Boolean) as User[]}
-          currentUser={transformToUser(user as BackendUser)}
-          selectedContact={selectedContact ? transformToUser(selectedContact) : null}
-          onSelectContact={(contact) => selectContact(contact as BackendUser)}
+        <ContactList
+          contacts={typedContacts}
+          currentUser={userToContact(user as User)}
+          selectedContact={userToContact(selectedContact as User)}
+          onSelectContact={(contact: Contact) => selectContact(contact)}
+          onSearchUsers={searchUsersForNewChat}
+          onStartNewConversation={(contact: Contact) => handleStartNewConversation(contact)}
         />
       </div>
 
@@ -201,27 +188,22 @@ export default function ChatPage() {
       <div className="w-3/4 flex flex-col">
         {selectedContact ? (
           <>
-            <ChatHeader contact={transformToUser(selectedContact) as User} />
+            <ChatHeader contact={userToContact(selectedContact as User)!} />
 
             {/* Messages */}
             <div className="flex-1 p-4 overflow-y-auto bg-secondary scroll-none relative">
               <div className="max-w-3xl mx-auto">
                 {messages.length === 0 ? (
-                  <EmptyState type="no-messages" contact={transformToUser(selectedContact) as User} />
+                  <EmptyState type="no-messages" contact={userToContact(selectedContact as User)!} />
                 ) : (
                   messages.map((message) => (
                     <ChatMessage
                       key={message.id}
-                      message={{
-                        id: message.id,
-                        content: message.content,
-                        senderId: message.senderId,
-                        timestamp: message.createdAt,
-                        isRead: message.status === "READ",
-                        attachments: transformAttachments(message.attachments),
-                      }}
+                      message={message}
                       isOutgoing={message.senderId === user?.id}
-                      sender={message.senderId === user?.id ? transformToUser(user as BackendUser) : transformToUser(selectedContact)}
+                      sender={userToContact(
+                        message.senderId === user?.id ? (user as User) : (selectedContact as User)
+                      )}
                       onDelete={handleDeleteMessage}
                       onReply={() => {
                         // reply functionality here

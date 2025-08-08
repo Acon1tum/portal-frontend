@@ -49,7 +49,7 @@ function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbac
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
+      <div className="flex items-center justify-center min-h-[200px] text-muted-foreground">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
           <p className="text-sm">Loading image...</p>
@@ -60,7 +60,7 @@ function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbac
 
   if (hasError || !imageUrl) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
+      <div className="flex items-center justify-center min-h-[200px] text-muted-foreground">
         <div className="text-center">
           <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -73,14 +73,17 @@ function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbac
   }
 
   return (
-    <Image
-      src={imageUrl}
-      alt={attachment.fileName || 'Post image'}
-      fill
-      className="object-cover"
-      sizes="(max-width: 768px) 100vw, 600px"
-      onError={() => setHasError(true)}
-    />
+    <div className="relative w-full" style={{ maxHeight: '600px' }}>
+      <Image
+        src={imageUrl}
+        alt={attachment.fileName || 'Post image'}
+        width={800}
+        height={600}
+        className="w-full h-auto object-contain rounded-lg max-h-[600px]"
+        sizes="(max-width: 768px) 100vw, 800px"
+        onError={() => setHasError(true)}
+      />
+    </div>
   );
 }
 
@@ -302,7 +305,7 @@ export default function PostsPage() {
                 {/* Image Preview */}
                 {imageAttachment && (
                   <div className="px-6 pb-4">
-                    <div className="relative w-full h-64 bg-muted rounded-lg overflow-hidden">
+                    <div className="relative w-full bg-muted rounded-lg overflow-hidden">
                       <ImageWithFallback 
                         attachment={imageAttachment}
                         getViewableImageUrl={getViewableImageUrl}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Upload, X } from "lucide-react";
+import { ArrowLeft, Save, X, Image as ImageIcon, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,6 +49,11 @@ export default function CreatePostPage() {
 
   const removeAttachment = (index: number) => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Helper function to check if file is an image
+  const isImageFile = (fileType: string) => {
+    return fileType.startsWith('image/');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -168,19 +173,32 @@ export default function CreatePostPage() {
                     className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                   {attachments.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {attachments.map((file, index) => (
-                        <div key={index} className="flex items-center bg-gray-100 text-gray-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
-                          {file.name}
-                          <button
-                            type="button"
-                            onClick={() => removeAttachment(index)}
-                            className="ml-2 text-red-500 hover:text-red-700"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        {attachments.length} file{attachments.length !== 1 ? 's' : ''} selected
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {attachments.map((file, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-muted text-foreground text-sm px-3 py-2 rounded-lg border">
+                            {isImageFile(file.type) ? (
+                              <ImageIcon className="w-4 h-4 text-blue-500" />
+                            ) : (
+                              <FileText className="w-4 h-4 text-gray-500" />
+                            )}
+                            <span className="truncate max-w-32">{file.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({(file.size / 1024).toFixed(1)} KB)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(index)}
+                              className="ml-1 text-destructive hover:text-destructive/80"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
