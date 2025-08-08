@@ -29,7 +29,7 @@ export default function ViewPostPage() {
   );
 
   // Check if user is admin (can manage all posts)
-  const isAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN';
+  const isAdmin = user?.role === 'SUPERADMIN';
 
   // Check if user can edit this post
   const canEditPost = isPostOwner || isAdmin;
@@ -237,7 +237,7 @@ export default function ViewPostPage() {
                 <div className="space-y-4">
                   {posting.attachments.map((attachment) => (
                     <div key={attachment.id}>
-                      {isImageFile(attachment.fileType) ? (
+                      {attachment.fileType && isImageFile(attachment.fileType) ? (
                         // Image display - Facebook style
                         <div className="space-y-3">
                           <div className="flex items-center gap-3">

@@ -230,6 +230,22 @@ export interface PostingAttachment {
   postingId: string;
 }
 
+export interface PostingCommentUser {
+  id: string;
+  name?: string;
+  email: string;
+}
+
+export interface PostingComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  postingId: string;
+  user?: PostingCommentUser;
+}
+
 export interface Posting {
   id: string;
   title: string;
@@ -252,6 +268,8 @@ export interface Posting {
     email: string;
   };
   attachments: PostingAttachment[];
+  comments?: PostingComment[];
+  _count?: { comments: number };
 }
 
 export interface CreatePostingRequest {
