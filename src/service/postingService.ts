@@ -134,6 +134,7 @@ class PostingService {
     uploadedAt: string;
     postingId: string;
   }> {
+    try {
     const response = await fetch(`${API_URL}/postings/${postingId}/attachments`, {
       method: 'POST',
       headers: {
@@ -144,10 +145,31 @@ class PostingService {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to add attachment');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Attachment upload error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+        
+        if (response.status === 413) {
+          throw new Error('File is too large. Maximum size is 5MB per file.');
+        } else if (response.status === 401) {
+          throw new Error('Unauthorized. Please log in again.');
+        } else if (response.status === 403) {
+          throw new Error('You do not have permission to modify this post.');
+        } else if (response.status === 404) {
+          throw new Error('Post not found.');
+        } else {
+          throw new Error(errorData.error || `Upload failed (${response.status})`);
+        }
     }
 
     return response.json();
+    } catch (error) {
+      console.error('Attachment upload failed:', error);
+      throw error;
+    }
   }
 
   // Delete attachment
@@ -159,6 +181,65 @@ class PostingService {
 
     if (!response.ok) {
       throw new Error('Failed to delete attachment');
+    }
+  }
+
+  // Get comments for a posting
+  async getComments(postingId: string): Promise<{
+    id: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    userId: string;
+    postingId: string;
+    user?: { id: string; name?: string; email: string };
+  }[]> {
+    const response = await fetch(`${API_URL}/postings/${postingId}/comments`, {
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch comments');
+    }
+
+    return response.json();
+  }
+
+  // Create a comment for a posting
+  async createComment(postingId: string, content: string): Promise<{
+    id: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    userId: string;
+    postingId: string;
+    user?: { id: string; name?: string; email: string };
+  }> {
+    const response = await fetch(`${API_URL}/postings/${postingId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ content }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to create comment');
+    }
+
+    return response.json();
+  }
+
+  // Delete a comment
+  async deleteComment(postingId: string, commentId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/postings/${postingId}/comments/${commentId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to delete comment');
     }
   }
 }
