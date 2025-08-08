@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePostings } from "@/hooks/usePostings";
 import { PostType, PostingComment } from "@/utils/types";
 import Link from "next/link";
@@ -123,6 +124,11 @@ export default function PostsPage() {
     postingId: '',
     commentContent: '',
   });
+  const [editingComment, setEditingComment] = useState<{
+    commentId: string;
+    postingId: string;
+    content: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchPostings();
@@ -321,6 +327,25 @@ export default function PostsPage() {
     }
   };
 
+  const handleEditComment = async (commentId: string, postingId: string, newContent: string) => {
+    if (!newContent.trim()) return;
+    
+    try {
+      // For now, we'll simulate editing by updating the local state
+      // In a real app, you'd call an API endpoint to update the comment
+      setCommentsByPost(prev => ({
+        ...prev,
+        [postingId]: prev[postingId].map(c => 
+          c.id === commentId ? { ...c, content: newContent.trim() } : c
+        )
+      }));
+      setEditingComment(null);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to edit comment';
+      setErrorCommentsByPost(prev => ({ ...prev, [postingId]: msg }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background w-full">
       <div className="w-full px-4 py-6">
@@ -379,11 +404,12 @@ export default function PostsPage() {
               : [];
             
             return (
-              <Card key={posting.id} className="border-0 shadow-sm">
+              <Card key={posting.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+                <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
                 {/* Post Header */}
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-3 pt-4">
                   <div className="flex items-start gap-3">
-                    <Avatar className="w-10 h-10">
+                    <Avatar className="w-11 h-11 ring-2 ring-border">
                       <AvatarImage src="/avatars/default.jpg" alt="User" />
                       <AvatarFallback>
                         {posting.createdBy?.name?.charAt(0) || posting.organization?.name?.charAt(0) || "U"}
@@ -420,7 +446,7 @@ export default function PostsPage() {
                     <h2 className="text-xl font-semibold text-foreground leading-tight">
                       {posting.title}
                     </h2>
-                    <div className="text-muted-foreground leading-relaxed">
+                    <div className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                       {posting.content && posting.content.length > 200 
                         ? `${posting.content.substring(0, 200)}...` 
                         : posting.content
@@ -432,7 +458,7 @@ export default function PostsPage() {
                 {/* Image Preview */}
                 {imageAttachment && (
                   <div className="px-6 pb-4">
-                    <div className="relative w-full bg-muted rounded-lg overflow-hidden">
+                    <div className="relative w-full bg-muted/40 rounded-lg overflow-hidden ring-1 ring-border/50">
                       <ImageWithFallback 
                         attachment={imageAttachment}
                         getViewableImageUrl={getViewableImageUrl}
@@ -452,7 +478,7 @@ export default function PostsPage() {
                       {otherAttachments.length === 0 ? (
                         // If only an image preview exists and no other files, still show it as an item
                         imageAttachment ? (
-                          <div className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center justify-between p-3 border border-border/60 rounded-lg hover:bg-muted/30 transition-colors">
                             <div className="flex items-center gap-3 min-w-0">
                               <ImageIcon className="w-5 h-5 text-blue-500" />
                               <div className="truncate">
@@ -472,33 +498,33 @@ export default function PostsPage() {
                       ) : (
                         <>
                           {attachmentsToRender.map(att => (
-                          <div key={att.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3 min-w-0">
-                              {att.fileType && isImageFile(att.fileType) ? (
-                                <ImageIcon className="w-5 h-5 text-blue-500" />
-                              ) : (
-                                <FileText className="w-5 h-5 text-gray-500" />
-                              )}
-                              <div className="truncate">
-                                <p className="font-medium text-sm truncate">{att.fileName || 'Attachment'}</p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {att.fileType} {att.size ? `• ${formatSize(att.size)}` : ''}
-                                </p>
+                            <div key={att.id} className="flex items-center justify-between p-3 border border-border/60 rounded-lg hover:bg-muted/30 transition-colors">
+                              <div className="flex items-center gap-3 min-w-0">
+                                {att.fileType && isImageFile(att.fileType) ? (
+                                  <ImageIcon className="w-5 h-5 text-blue-500" />
+                                ) : (
+                                  <FileText className="w-5 h-5 text-gray-500" />
+                                )}
+                                <div className="truncate">
+                                  <p className="font-medium text-sm truncate">{att.fileName || 'Attachment'}</p>
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {att.fileType} {att.size ? `• ${formatSize(att.size)}` : ''}
+                                  </p>
+                                </div>
                               </div>
+                              <Button variant="outline" size="sm" asChild>
+                                <a href={att.url} target="_blank" rel="noopener noreferrer" download={att.fileName}>
+                                  <Download className="w-4 h-4 mr-2" /> Download
+                                </a>
+                              </Button>
                             </div>
-                            <Button variant="outline" size="sm" asChild>
-                              <a href={att.url} target="_blank" rel="noopener noreferrer" download={att.fileName}>
-                                <Download className="w-4 h-4 mr-2" /> Download
-                              </a>
-                            </Button>
-                          </div>
                           ))}
                           {otherAttachments.length > ATTACHMENTS_PREVIEW_COUNT && (
                             <div className="pt-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-foreground"
+                                className="text-foreground/80 hover:text-foreground"
                                 onClick={() => setExpandedAttachmentsByPost(prev => ({
                                   ...prev,
                                   [posting.id]: !isExpanded,
@@ -517,7 +543,7 @@ export default function PostsPage() {
                 )}
 
                 {/* Engagement Stats */}
-                <div className="px-6 py-3 border-t border-border">
+                <div className="px-6 py-3 border-t border-border/60 bg-muted/10">
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
@@ -533,12 +559,12 @@ export default function PostsPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="px-6 py-2 border-t border-border">
+                <div className="px-6 py-2 border-t border-border/60">
                   <div className="flex items-center justify-between">
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground"
+                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                     >
                       <Heart className="w-5 h-5" />
                       <span className="font-medium">Like</span>
@@ -546,7 +572,7 @@ export default function PostsPage() {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground"
+                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                       onClick={() => handleToggleComments(posting.id)}
                     >
                       <MessageCircle className="w-5 h-5" />
@@ -555,7 +581,7 @@ export default function PostsPage() {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground"
+                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                     >
                       <Share2 className="w-5 h-5" />
                       <span className="font-medium">Share</span>
@@ -563,7 +589,7 @@ export default function PostsPage() {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="p-2 text-muted-foreground hover:text-foreground"
+                      className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                     >
                       <Bookmark className="w-5 h-5" />
                     </Button>
@@ -574,7 +600,7 @@ export default function PostsPage() {
                 {!expandedCommentsByPost[posting.id] && (
                   <div className="px-6 pb-4">
                     <Link href={`/posts/view/${posting.id}`}>
-                      <Button variant="outline" className="w-full" size="sm">
+                      <Button variant="outline" className="w-full rounded-lg" size="sm">
                         <Eye className="w-4 h-4 mr-2" />
                         View Full Post
                       </Button>
@@ -596,7 +622,7 @@ export default function PostsPage() {
                         ) : (
                           commentsByPost[posting.id].map((c) => (
                             <div key={c.id} className="flex items-start gap-3">
-                              <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+                              <div className="w-8 h-8 rounded-full bg-muted/70 flex items-center justify-center text-xs font-medium ring-1 ring-border/60">
                                 {(c.user?.name || c.user?.email || 'U').charAt(0)}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -606,25 +632,74 @@ export default function PostsPage() {
                                   {/* Comment actions */}
                                   {(user && (user.id === c.userId || user.id === posting.createdBy?.id)) && (
                                     <div className="ml-auto relative">
-                                      <button
-                                        type="button"
-                                        className="p-1 rounded hover:bg-muted"
-                                        onClick={() => setDeleteCommentModal({
-                                          isOpen: true,
-                                          commentId: c.id,
-                                          postingId: posting.id,
-                                          commentContent: c.content,
-                                        })}
-                                        title="More"
-                                      >
-                                        <MoreHorizontal className="w-4 h-4" />
-                                      </button>
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <button
+                                            type="button"
+                                            className="p-1 rounded hover:bg-muted"
+                                            title="More"
+                                          >
+                                            <MoreHorizontal className="w-4 h-4" />
+                                          </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          {user.id === c.userId && (
+                                            <DropdownMenuItem
+                                              onClick={() => setEditingComment({
+                                                commentId: c.id,
+                                                postingId: posting.id,
+                                                content: c.content,
+                                              })}
+                                            >
+                                              Edit
+                                            </DropdownMenuItem>
+                                          )}
+                                          <DropdownMenuItem
+                                            onClick={() => setDeleteCommentModal({
+                                              isOpen: true,
+                                              commentId: c.id,
+                                              postingId: posting.id,
+                                              commentContent: c.content,
+                                            })}
+                                            className="text-destructive focus:text-destructive"
+                                          >
+                                            Delete
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
                                     </div>
                                   )}
                                 </div>
-                                <div className="text-sm text-foreground/90 whitespace-pre-wrap">
-                                  {c.content}
-                                </div>
+                                {editingComment?.commentId === c.id ? (
+                                  <div className="mt-2 space-y-2">
+                                    <textarea
+                                      value={editingComment.content}
+                                      onChange={(e) => setEditingComment(prev => prev ? { ...prev, content: e.target.value } : null)}
+                                      className="w-full px-3 py-2 text-sm border rounded-lg bg-background resize-none"
+                                      rows={2}
+                                      autoFocus
+                                    />
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        onClick={() => handleEditComment(c.id, posting.id, editingComment.content)}
+                                      >
+                                        Save
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setEditingComment(null)}
+                                      >
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-foreground/90 whitespace-pre-wrap bg-muted/30 inline-block px-3 py-2 rounded-2xl">
+                                    {c.content}
+                                  </div>
+                                )}
                                 <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
                                   <button className="hover:underline" type="button">Like</button>
                                   <button className="hover:underline" type="button">Reply</button>
@@ -663,9 +738,9 @@ export default function PostsPage() {
                             type="text"
                             name="newComment"
                             placeholder="Write a comment..."
-                            className="flex-1 px-3 py-2 border rounded-md bg-background text-sm"
+                            className="flex-1 px-4 py-2 border rounded-full bg-muted/30 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
-                          <Button type="submit" size="sm">
+                          <Button type="submit" size="sm" className="rounded-full h-8 w-8 p-0 flex items-center justify-center">
                             <Send className="w-4 h-4" />
                           </Button>
                         </form>
