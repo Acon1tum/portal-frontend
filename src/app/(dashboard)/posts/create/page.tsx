@@ -268,7 +268,7 @@ export default function CreatePostPage() {
                       Click to upload files or drag and drop
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Supports images, PDFs, and documents (max 10MB each)
+                      Supports images, PDFs, and documents (max 20MB each)
                     </p>
                   </label>
                 </div>

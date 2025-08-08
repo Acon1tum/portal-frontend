@@ -7,12 +7,45 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Shield, Smartphone, Lock, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { useAuth } from '@/lib/auth-context';
+import { useState, useEffect } from 'react';
 
 export default function SecurityPage() {
+  const { user } = useAuth();
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(user?.coverPhoto);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfilePicture(user.profilePicture);
+      setCoverPhoto(user.coverPhoto);
+    }
+  }, [user]);
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
+  };
+
   return (
     <div className="container p-6 mx-auto space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Security Settings</h1>
+      </div>
+
+      {/* Profile Image Editor */}
+      <div className="mb-6">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={false}
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -57,7 +90,7 @@ export default function SecurityPage() {
 
         <Card>
           <CardHeader>
-                          <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center">
               <Smartphone className="mr-2 h-5 w-5 text-primary" />
               Multi-Factor Authentication
             </CardTitle>

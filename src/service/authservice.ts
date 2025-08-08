@@ -47,6 +47,48 @@ export const checkSession = async (): Promise<SessionUser | null> => {
   }
 };
 
+// Function to fetch complete user profile including profilePicture and coverPhoto
+export const fetchUserProfile = async (): Promise<SessionUser | null> => {
+  try {
+    // First get the session to get the user ID
+    const sessionUser = await checkSession();
+    console.log('fetchUserProfile: Session user:', sessionUser);
+    
+    if (!sessionUser || !sessionUser.id) {
+      console.error('fetchUserProfile: No authenticated user found');
+      return null;
+    }
+
+    console.log('fetchUserProfile: Fetching profile for user ID:', sessionUser.id);
+    console.log('fetchUserProfile: API URL:', `${API_URL}/user/profile/${sessionUser.id}`);
+
+    // Fetch complete user profile from the backend
+    const res = await fetch(`${API_URL}/user/profile/${sessionUser.id}`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    console.log('fetchUserProfile: Response status:', res.status);
+    console.log('fetchUserProfile: Response ok:', res.ok);
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('fetchUserProfile: Failed to fetch user profile:', res.status, errorText);
+      return null;
+    }
+
+    const userProfile = await res.json();
+    console.log('fetchUserProfile: Complete user profile fetched:', userProfile);
+    console.log('fetchUserProfile: Profile picture exists:', !!userProfile.profilePicture);
+    console.log('fetchUserProfile: Cover photo exists:', !!userProfile.coverPhoto);
+    
+    return userProfile as SessionUser;
+  } catch (error) {
+    console.error('fetchUserProfile: Failed to fetch user profile:', error);
+    return null;
+  }
+};
+
 // Function to logout user
 export const logout = async (): Promise<void> => {
   try {

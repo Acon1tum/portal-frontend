@@ -29,12 +29,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkAuth = async () => {
     try {
+      console.log('AuthContext: Checking authentication...');
       const userData = await checkSession();
+      console.log('AuthContext: User data received:', userData);
+      if (userData) {
+        console.log('AuthContext: User ID:', userData.id);
+        console.log('AuthContext: User email:', userData.email);
+      }
       setUser(userData);
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('AuthContext: Auth check failed:', error);
       setUser(null);
     } finally {
+      console.log('AuthContext: Setting loading to false');
       setLoading(false);
     }
   };

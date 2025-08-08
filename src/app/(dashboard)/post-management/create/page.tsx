@@ -29,10 +29,25 @@ const convertFileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+// Helper function to generate UUID
+const generateUUID = (): string => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
+// Helper function to get file extension
+const getFileExtension = (filename: string): string => {
+  return filename.split('.').pop() || '';
+};
+
 export default function CreatePostPage() {
   const router = useRouter();
   const { createPosting, addAttachment } = usePostings();
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [formData, setFormData] = useState({
@@ -44,7 +59,24 @@ export default function CreatePostPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setAttachments(prev => [...prev, ...files]);
+    const validFiles: File[] = [];
+    const maxFileSize = 5 * 1024 * 1024; // 5MB limit per file
+    
+    for (const file of files) {
+      if (file.size > maxFileSize) {
+        setError(`File "${file.name}" is too large. Maximum size is 5MB per file.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    if (validFiles.length > 0) {
+      setAttachments(prev => [...prev, ...validFiles]);
+      setError(null); // Clear any previous errors if valid files are added
+    }
+    
+    // Clear the input value to allow re-uploading the same file
+    e.target.value = '';
   };
 
   const removeAttachment = (index: number) => {
@@ -61,6 +93,7 @@ export default function CreatePostPage() {
     
     setSaving(true);
     setError(null);
+    setUploadProgress(0);
 
     try {
       const createData: CreatePostingRequest = {
@@ -74,25 +107,43 @@ export default function CreatePostPage() {
 
       // Upload attachments if any
       if (attachments.length > 0) {
-        for (const file of attachments) {
+        for (let i = 0; i < attachments.length; i++) {
+          const file = attachments[i];
+          try {
+            // Update progress
+            setUploadProgress(Math.round(((i + 1) / attachments.length) * 100));
+            
+            // Generate unique filename by appending timestamp
+            const timestamp = Date.now();
+            const fileExtension = getFileExtension(file.name);
+            const fileNameWithoutExt = file.name.replace(`.${fileExtension}`, '');
+            const uniqueFileName = `${fileNameWithoutExt}_${timestamp}.${fileExtension}`;
+            
           // Convert file to base64
           const base64Data = await convertFileToBase64(file);
           const attachmentData = {
             url: `data:${file.type};base64,${base64Data}`,
-            fileName: file.name,
+              fileName: uniqueFileName, // Use unique filename with timestamp
             fileType: file.type,
             size: file.size,
           };
           
           await addAttachment(newPosting.id, attachmentData);
+          } catch (attachmentError) {
+            console.error(`Failed to upload attachment ${file.name}:`, attachmentError);
+            setError(`Failed to upload attachment "${file.name}". Post created successfully but some attachments failed.`);
+            // Continue with other attachments instead of failing completely
+          }
         }
       }
 
       router.push(`/post-management/${newPosting.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create post');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create post';
+      setError(errorMessage);
     } finally {
       setSaving(false);
+      setUploadProgress(0);
     }
   };
 
@@ -185,7 +236,7 @@ export default function CreatePostPage() {
                             ) : (
                               <FileText className="w-4 h-4 text-gray-500" />
                             )}
-                            <span className="truncate max-w-32">{file.name}</span>
+                            <span className="truncate max-w-32" title={file.name}>{file.name}</span>
                             <span className="text-xs text-muted-foreground">
                               ({(file.size / 1024).toFixed(1)} KB)
                             </span>
@@ -266,7 +317,11 @@ export default function CreatePostPage() {
                   {saving ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Creating...
+                      {attachments.length > 0 && uploadProgress > 0 ? (
+                        `Uploading attachments... ${uploadProgress}%`
+                      ) : (
+                        'Creating...'
+                      )}
                     </>
                   ) : (
                     <>

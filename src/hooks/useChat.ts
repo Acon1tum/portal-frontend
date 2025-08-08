@@ -93,7 +93,20 @@ export const useChat = (): UseChatReturn => {
     try {
       setLoading(true);
       const messagesData = await chatService.getMessagesBetweenUsers(user.id, selectedContact.id);
-      setMessages(messagesData);
+      console.log('Loaded messages:', messagesData);
+      // Validate message dates before setting
+      const validatedMessages = messagesData.map(msg => {
+        if (!msg.createdAt || isNaN(new Date(msg.createdAt).getTime())) {
+          console.warn('Invalid message createdAt:', msg);
+          return {
+            ...msg,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return msg;
+      });
+      setMessages(validatedMessages);
       setError(null);
     } catch (err) {
       console.error('Error loading messages:', err);
@@ -105,30 +118,41 @@ export const useChat = (): UseChatReturn => {
 
   // WebSocket handlers
   const handleNewMessage = useCallback((message: ChatMessage) => {
+    // Validate message dates
+    const validatedMessage = {
+      ...message,
+      createdAt: message.createdAt && !isNaN(new Date(message.createdAt).getTime()) 
+        ? message.createdAt 
+        : new Date().toISOString(),
+      updatedAt: message.updatedAt && !isNaN(new Date(message.updatedAt).getTime()) 
+        ? message.updatedAt 
+        : new Date().toISOString()
+    };
+
     setMessages(prev => {
       // Check if message already exists to prevent duplicates
-      const messageExists = prev.some(msg => msg.id === message.id);
+      const messageExists = prev.some(msg => msg.id === validatedMessage.id);
       if (messageExists) {
-        console.log('Message already exists, skipping duplicate:', message.id);
+        console.log('Message already exists, skipping duplicate:', validatedMessage.id);
         return prev;
       }
       
       // Check if there's a temporary message to replace
       const tempMessageIndex = prev.findIndex(msg => 
         msg.id.startsWith('temp-') && 
-        msg.content === message.content &&
-        msg.senderId === message.senderId
+        msg.content === validatedMessage.content &&
+        msg.senderId === validatedMessage.senderId
       );
       
       if (tempMessageIndex !== -1) {
-        console.log('Replacing temporary message with real message:', message.id);
+        console.log('Replacing temporary message with real message:', validatedMessage.id);
         const newMessages = [...prev];
-        newMessages[tempMessageIndex] = message;
+        newMessages[tempMessageIndex] = validatedMessage;
         return newMessages;
       }
       
-      console.log('Adding new message to chat:', message.id);
-      return [...prev, message];
+      console.log('Adding new message to chat:', validatedMessage.id);
+      return [...prev, validatedMessage];
     });
 
     // Update contacts if this is a new conversation

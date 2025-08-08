@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, Plus, Trash2, Save, Link as LinkIcon } from 'lucide-react';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { useAuth } from '@/lib/auth-context';
 
 type TeamMember = {
   id: string;
@@ -30,11 +32,23 @@ export default function TeamManager({
   onSave,
   standalone = false 
 }: TeamManagerProps) {
+  const { user } = useAuth();
   const [members, setMembers] = useState<TeamMember[]>(
     initialMembers.length > 0 
       ? initialMembers 
       : [{ id: crypto.randomUUID(), name: '', title: '', bio: '' }]
   );
+
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(user?.coverPhoto);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfilePicture(user.profilePicture);
+      setCoverPhoto(user.coverPhoto);
+    }
+  }, [user]);
 
   const handleMemberChange = (id: string, field: keyof TeamMember, value: string) => {
     setMembers(prev => 
@@ -42,6 +56,14 @@ export default function TeamManager({
         member.id === id ? { ...member, [field]: value } : member
       )
     );
+  };
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
   };
 
   const addMember = () => {
@@ -68,6 +90,16 @@ export default function TeamManager({
 
   return (
     <div className="space-y-6">
+      {/* Profile Image Editor */}
+      <div className="mb-6">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={false}
+        />
+      </div>
+
       {standalone && (
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Team Members</h1>

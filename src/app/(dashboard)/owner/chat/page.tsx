@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Paperclip, Send, Smile, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/custom-ui/chat/empty-chat";
@@ -38,6 +39,7 @@ function userToContact(user: User | null | undefined): Contact | null {
 
 export default function ChatPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const {
     messages,
     contacts,
@@ -49,6 +51,7 @@ export default function ChatPage() {
     deleteMessage,
     refreshMessages,
     searchUsersForNewChat,
+    startNewConversation,
   } = useChat();
 
   const [newMessage, setNewMessage] = useState("");
@@ -57,6 +60,20 @@ export default function ChatPage() {
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Handle URL parameter for pre-selected user
+  useEffect(() => {
+    const userParam = searchParams.get('user');
+    if (userParam && !selectedContact) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(userParam));
+        // Use startNewConversation to add the user to contacts and select them
+        startNewConversation(userData);
+      } catch (error) {
+        console.error('Error parsing user data from URL:', error);
+      }
+    }
+  }, [searchParams, selectedContact, startNewConversation]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

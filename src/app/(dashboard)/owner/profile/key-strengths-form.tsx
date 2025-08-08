@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { useAuth } from '@/lib/auth-context';
 
 type KeyStrength = {
   id: string;
@@ -23,6 +25,7 @@ export default function KeyStrengthsForm({
   initialStrengths = [], 
   onUpdate 
 }: KeyStrengthsFormProps) {
+  const { user } = useAuth();
   const [strengths, setStrengths] = useState<KeyStrength[]>(
     initialStrengths.length > 0 
       ? initialStrengths 
@@ -33,6 +36,17 @@ export default function KeyStrengthsForm({
         ]
   );
 
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(user?.coverPhoto);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfilePicture(user.profilePicture);
+      setCoverPhoto(user.coverPhoto);
+    }
+  }, [user]);
+
   const handleStrengthChange = (id: string, field: keyof KeyStrength, value: string) => {
     const updatedStrengths = strengths.map(strength => 
       strength.id === id ? { ...strength, [field]: value } : strength
@@ -41,6 +55,14 @@ export default function KeyStrengthsForm({
     setStrengths(updatedStrengths);
     if (onUpdate) {
       onUpdate(updatedStrengths);
+    }
+  };
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
     }
   };
 
@@ -70,7 +92,17 @@ export default function KeyStrengthsForm({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Profile Image Editor */}
+      <div className="mb-6">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={false}
+        />
+      </div>
+
       <p className="text-sm text-muted-foreground">
         Highlight 3-5 key strengths or unique selling points that set your business apart from competitors.
       </p>

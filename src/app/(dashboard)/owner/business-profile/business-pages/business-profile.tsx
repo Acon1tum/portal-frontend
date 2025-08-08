@@ -1,11 +1,30 @@
 import { Business, VerificationStatus } from "@/utils/types";
 import { Building, MessageSquare, Share2, Bookmark, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { ProfileImageEditor } from "@/components/custom-ui/profile/ProfileImageEditor";
+import { useState, useEffect } from "react";
 
 interface BusinessProfileHeaderProps {
   business: Business;
 }
 
 export default function BusinessProfileHeader({ business }: BusinessProfileHeaderProps) {
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(business.logo);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(business.coverPhoto);
+
+  // Update local state when business data changes
+  useEffect(() => {
+    setProfilePicture(business.logo);
+    setCoverPhoto(business.coverPhoto);
+  }, [business]);
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
+  };
+
   const getVerificationBadge = (status: VerificationStatus) => {
     switch (status) {
       case VerificationStatus.VERIFIED:
@@ -33,21 +52,20 @@ export default function BusinessProfileHeader({ business }: BusinessProfileHeade
   };
 
   return (
-    <div className="relative h-64 w-full bg-gradient-to-r from-chart-1/90 to-chart-3/90">
+    <div className="relative">
+      {/* Cover Photo and Profile Picture Editor */}
+      <div className="relative">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={true}
+          organizationId={business.id}
+        />
+      </div>
+
+      {/* Business Info Overlay */}
       <div className="absolute -bottom-16 left-8 flex items-end">
-        <div className="w-32 h-32 bg-card rounded-lg shadow-lg overflow-hidden border-4 border-background">
-        {business.logo && business.logo.startsWith('/') ? (
-            <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-4xl font-bold">
-              {business.name.charAt(0)}
-            </div>
-          ) : (
-            <img 
-              src={business.logo} 
-              alt={`${business.name} logo`} 
-              className="w-full h-full object-cover"
-            />
-          )}
-        </div>
         <div className="ml-4 mb-4">
           <div className="flex items-center space-x-2">
             <h1 className="text-3xl font-bold text-white">{business.name}</h1>

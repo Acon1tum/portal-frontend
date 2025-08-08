@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, Building2 } from 'lucide-react';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { useAuth } from '@/lib/auth-context';
 
 type BusinessInfo = {
   company: string;
@@ -29,6 +31,7 @@ export default function BusinessInfoForm({
   initialData = {}, 
   onUpdate 
 }: BusinessInfoFormProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<BusinessInfo>({
     company: initialData.company || '',
     industry: initialData.industry || '',
@@ -39,6 +42,17 @@ export default function BusinessInfoForm({
     taxId: initialData.taxId || '',
     logoUrl: initialData.logoUrl || ''
   });
+
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(user?.coverPhoto);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfilePicture(user.profilePicture);
+      setCoverPhoto(user.coverPhoto);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (onUpdate) {
@@ -53,6 +67,14 @@ export default function BusinessInfoForm({
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
   };
 
   // Mock file upload - in a real app, this would upload to cloud storage
@@ -75,6 +97,16 @@ export default function BusinessInfoForm({
 
   return (
     <div className="space-y-6">
+      {/* Profile Image Editor */}
+      <div className="mb-6">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={false}
+        />
+      </div>
+
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-1/3 flex flex-col items-center space-y-4">
           <Avatar className="h-32 w-32">

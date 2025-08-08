@@ -24,17 +24,22 @@ import {
 // Import FeaturedBusinesses component
 import FeaturedBusinesses from "@/app/(dashboard)/featured-businesses/feature-business";
 
+// Import UserProfileContainer component
+import UserProfileContainer from "@/app/(dashboard)/user-profile/user-profile-container";
+
 // Import custom hook for data fetching
 import { useAuth } from "@/lib/auth-context";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useUsersData } from "@/hooks/useUsersData";
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { businesses, categories, activities, loading: dataLoading, error, refetch } = useDashboardData();
+  const { users, loading: usersLoading, error: usersError, refetch: refetchUsers } = useUsersData();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  if (authLoading || dataLoading) {
+  if (authLoading || dataLoading || usersLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center space-y-4">
@@ -45,12 +50,12 @@ const Dashboard = () => {
     );
   }
 
-  if (error) {
+  if (error || usersError) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-lg text-red-600 mb-4">{error}</p>
-          <Button onClick={refetch} variant="outline">
+          <p className="text-lg text-red-600 mb-4">{error || usersError}</p>
+          <Button onClick={error ? refetch : refetchUsers} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
           </Button>
@@ -129,6 +134,13 @@ const Dashboard = () => {
         {/* Featured Businesses Section */}
         <FeaturedBusinesses 
           businesses={businesses}
+          searchQuery={searchQuery}
+          selectedCategory={selectedCategory}
+        />
+
+        {/* User Profiles Section */}
+        <UserProfileContainer 
+          users={users}
           searchQuery={searchQuery}
           selectedCategory={selectedCategory}
         />

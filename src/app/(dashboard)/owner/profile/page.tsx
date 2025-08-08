@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,16 +10,75 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { fetchUserProfile } from '@/service/authservice';
+import { SessionUser } from '@/utils/types';
 import { 
   Building2, Mail, Phone, Globe, MapPin, Edit, Shield, 
   FileText, CheckCircle2, Users, Star, ExternalLink, Calendar
 } from 'lucide-react';
 
 export default function ProfilePage() {
+  const { user: sessionUser, loading: authLoading } = useAuth(); // Fetch user data from the authentication context
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [profilePicture, setProfilePicture] = useState<string | undefined>();
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>();
 
-  const { user, loading } = useAuth(); // Fetch user data from the authentication context
+  // Fetch complete user profile data
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!authLoading && sessionUser) {
+        try {
+          setLoading(true);
+          console.log('ProfilePage: Fetching complete user profile...');
+          console.log('ProfilePage: Session user ID:', sessionUser.id);
+          console.log('ProfilePage: Session user data:', sessionUser);
+          
+          const completeUserProfile = await fetchUserProfile();
+          
+          if (completeUserProfile) {
+            console.log('ProfilePage: Complete user profile loaded:', completeUserProfile);
+            console.log('ProfilePage: Profile picture:', completeUserProfile.profilePicture ? 'base64_data' : 'none');
+            console.log('ProfilePage: Cover photo:', completeUserProfile.coverPhoto ? 'base64_data' : 'none');
+            
+            setUser(completeUserProfile);
+            setProfilePicture(completeUserProfile.profilePicture);
+            setCoverPhoto(completeUserProfile.coverPhoto);
+          } else {
+            console.log('ProfilePage: No complete user profile found, using session user');
+            console.log('ProfilePage: Session user profile picture:', sessionUser.profilePicture ? 'base64_data' : 'none');
+            console.log('ProfilePage: Session user cover photo:', sessionUser.coverPhoto ? 'base64_data' : 'none');
+            setUser(sessionUser);
+            setProfilePicture(sessionUser.profilePicture);
+            setCoverPhoto(sessionUser.coverPhoto);
+          }
+        } catch (error) {
+          console.error('ProfilePage: Error fetching user profile:', error);
+          // Fallback to session user
+          setUser(sessionUser);
+          setProfilePicture(sessionUser?.profilePicture);
+          setCoverPhoto(sessionUser?.coverPhoto);
+        } finally {
+          setLoading(false);
+        }
+      } else if (!authLoading && !sessionUser) {
+        setLoading(false);
+      }
+    };
 
-  if (loading || !user) {
+    loadUserProfile();
+  }, [sessionUser, authLoading]);
+
+  // Add debugging logs
+  useEffect(() => {
+    console.log('ProfilePage: Auth loading state:', authLoading);
+    console.log('ProfilePage: Session user data:', sessionUser);
+    console.log('ProfilePage: Complete user data:', user);
+  }, [authLoading, sessionUser, user]);
+
+  if (authLoading || loading) {
+    console.log('ProfilePage: Still loading...');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Loading...</p>
@@ -27,6 +86,24 @@ export default function ProfilePage() {
     );
   }
 
+  if (!user) {
+    console.log('ProfilePage: No user found, redirecting...');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>No user found. Please log in.</p>
+      </div>
+    );
+  }
+
+  console.log('ProfilePage: Rendering profile page for user:', user.name);
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
+  };
 
   const profile = {
     name: user.name,
@@ -84,56 +161,60 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Left sidebar with profile information */}
           <div className="space-y-6">
-            {/* Profile card */}
+            {/* Profile card with image editor */}
             <Card className="overflow-hidden border-none shadow-md dark:bg-gray-800 dark:text-gray-100">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800 pt-8 pb-6 px-6 text-center">
-                <Avatar className="h-24 w-24 mx-auto ring-4 ring-white dark:ring-gray-700">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt={profile.name} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-semibold dark:bg-gray-600 dark:text-gray-200">
-                    {profile.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <h2 className="mt-4 text-xl font-semibold">{profile.name}</h2>
-                <p className="text-gray-500 dark:text-gray-400">{profile.title}</p>
-                
-                <Badge className="mt-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  Verified
-                </Badge>
+              {/* Image Editor Section */}
+              <div className="relative">
+                <ProfileImageEditor
+                  profilePicture={profilePicture}
+                  coverPhoto={coverPhoto}
+                  onUpdate={handleImageUpdate}
+                />
               </div>
               
-              <CardContent className="px-6 py-5 space-y-4">
-                <div className="flex items-center">
-                  <Building2 className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
-                  <span>{profile.company}</span>
+              {/* Profile Info Section */}
+              <div className="px-6 py-6">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-semibold">{profile.name}</h2>
+                  <p className="text-gray-500 dark:text-gray-400">{profile.title}</p>
+                  
+                  <Badge className="mt-2 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Verified
+                  </Badge>
                 </div>
-                <div className="flex items-center">
-                  <Mail className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
-                  <span>{profile.email}</span>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <Building2 className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
+                    <span>{profile.company}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Mail className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
+                    <span>{profile.email}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Phone className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
+                    <span>{profile.phone}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Globe className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
+                    <span>
+                      {profile.website}
+                      <Button variant="link" size="sm" className="h-auto p-0 ml-1">
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <MapPin className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
+                    <span>{profile.location}</span>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <Phone className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
-                  <span>{profile.phone}</span>
-                </div>
-                <div className="flex items-center">
-                  <Globe className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
-                  <span>
-                    {profile.website}
-                    <Button variant="link" size="sm" className="h-auto p-0 ml-1">
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <MapPin className="h-5 w-5 mr-3 text-gray-400 dark:text-gray-500" />
-                  <span>{profile.location}</span>
-                </div>
-              </CardContent>
-              
-              <Separator className="dark:bg-gray-700" />
-              
-              <CardFooter className="px-6 py-5">
-                <div className="w-full space-y-3">
+                
+                <Separator className="my-6 dark:bg-gray-700" />
+                
+                <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span>Profile Completion</span>
                     <span className="font-medium">{profile.profileCompleted}%</span>
@@ -143,7 +224,7 @@ export default function ProfilePage() {
                     Last updated: {profile.lastUpdated}
                   </p>
                 </div>
-              </CardFooter>
+              </div>
             </Card>
             
             {/* Quick actions card */}

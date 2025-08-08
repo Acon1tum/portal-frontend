@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,9 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Upload, Save, Building2 } from 'lucide-react';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { useAuth } from '@/lib/auth-context';
 
 export default function BusinessInfoPage() {
   const router = useRouter();
+  const { user } = useAuth();
   
   const [business, setBusiness] = useState({
     company: 'Acme Corporation',
@@ -28,6 +31,17 @@ export default function BusinessInfoPage() {
     taxId: 'XX-XXXXXXX',
   });
 
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(user?.coverPhoto);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfilePicture(user.profilePicture);
+      setCoverPhoto(user.coverPhoto);
+    }
+  }, [user]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setBusiness(prev => ({ ...prev, [name]: value }));
@@ -35,6 +49,14 @@ export default function BusinessInfoPage() {
 
   const handleSelectChange = (name: string, value: string) => {
     setBusiness(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,6 +82,16 @@ export default function BusinessInfoPage() {
         <Button variant="outline" onClick={() => router.back()}>
           Cancel
         </Button>
+      </div>
+
+      {/* Profile Image Editor */}
+      <div className="mb-6">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={false}
+        />
       </div>
 
       <form onSubmit={handleSubmit}>

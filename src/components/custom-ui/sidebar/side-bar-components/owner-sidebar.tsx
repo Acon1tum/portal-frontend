@@ -41,11 +41,11 @@ export function OwnerSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         url: "/owner",
         icon: LayoutDashboard,
       },
-      // {
-      //   title: "Profile",
-      //   url: "/owner/profile",
-      //   icon: User,
-      // },
+      {
+        title: "Profile",
+        url: "/owner/profile",
+        icon: User,
+      },
       {
         title: "Messages",
         url: "/owner/messages",

@@ -71,7 +71,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 export function OwnerGuard({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard 
-      allowedRoles={[UserRole.EXHIBITOR, UserRole.SPONSOR]} 
+      allowedRoles={[UserRole.EXHIBITOR, UserRole.SPONSOR, UserRole.SUPERADMIN]} 
       redirectTo="/auth"
     >
       {children}

@@ -1,5 +1,6 @@
 import { Business, VerificationStatus } from "@/utils/types";
 import { Building, MessageSquare, Share2, Bookmark, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import Image from "next/image";
 
 interface BusinessProfileHeaderProps {
   business: Business;
@@ -33,19 +34,43 @@ export default function BusinessProfileHeader({ business }: BusinessProfileHeade
   };
 
   return (
-    <div className="relative h-64 w-full bg-gradient-to-r from-chart-1/90 to-chart-3/90">
+    <div className="relative h-64 w-full overflow-hidden">
+      {/* Cover photo or gradient background */}
+      {business.coverPhoto && business.coverPhoto.startsWith('data:image/') ? (
+        <Image
+          src={business.coverPhoto}
+          alt="Cover photo"
+          fill
+          className="object-cover"
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-r from-chart-1/90 to-chart-3/90" />
+      )}
+      
       <div className="absolute -bottom-16 left-8 flex items-end">
         <div className="w-32 h-32 bg-card rounded-lg shadow-lg overflow-hidden border-4 border-background">
-        {business.logo && business.logo.startsWith('/') ? (
+          {business.logo && business.logo.startsWith('data:image/') ? (
+            <Image
+              src={business.logo}
+              alt={`${business.name} logo`}
+              fill
+              className="object-cover"
+            />
+          ) : business.logo && business.logo.startsWith('/') ? (
             <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-4xl font-bold">
               {business.name.charAt(0)}
             </div>
-          ) : (
-            <img 
-              src={business.logo} 
-              alt={`${business.name} logo`} 
-              className="w-full h-full object-cover"
+          ) : business.logo ? (
+            <Image
+              src={business.logo}
+              alt={`${business.name} logo`}
+              fill
+              className="object-cover"
             />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-4xl font-bold">
+              {business.name.charAt(0)}
+            </div>
           )}
         </div>
         <div className="ml-4 mb-4">

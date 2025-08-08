@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Image, Plus, Trash2, Save } from 'lucide-react';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { useAuth } from '@/lib/auth-context';
 
 type Service = {
   id: string;
@@ -30,11 +32,23 @@ export default function ServicesManager({
   onSave,
   standalone = false 
 }: ServicesManagerProps) {
+  const { user } = useAuth();
   const [services, setServices] = useState<Service[]>(
     initialServices.length > 0 
       ? initialServices 
       : [{ id: crypto.randomUUID(), name: '', description: '', price: '', category: 'Services' }]
   );
+  
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(user?.coverPhoto);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfilePicture(user.profilePicture);
+      setCoverPhoto(user.coverPhoto);
+    }
+  }, [user]);
   
   const categories = ['Services', 'Products', 'Software', 'Consulting', 'Training', 'Support'];
 
@@ -44,6 +58,14 @@ export default function ServicesManager({
         service.id === id ? { ...service, [field]: value } : service
       )
     );
+  };
+
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
   };
 
   const addService = () => {
@@ -71,6 +93,16 @@ export default function ServicesManager({
 
   return (
     <div className="space-y-6">
+      {/* Profile Image Editor */}
+      <div className="mb-6">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={false}
+        />
+      </div>
+
       {standalone && (
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Products & Services</h1>

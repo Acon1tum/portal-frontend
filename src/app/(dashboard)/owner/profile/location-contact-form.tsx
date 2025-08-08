@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, Phone, Mail, Globe, Link as LinkIcon } from 'lucide-react';
+import { ProfileImageEditor } from '@/components/custom-ui/profile/ProfileImageEditor';
+import { useAuth } from '@/lib/auth-context';
 
 type BusinessHours = {
   monday: { open: string; close: string; closed: boolean };
@@ -63,6 +65,7 @@ export default function LocationContactForm({
   initialData = {}, 
   onUpdate 
 }: LocationContactFormProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<LocationContactData>({
     address: initialData.address || '',
     city: initialData.city || '',
@@ -87,6 +90,17 @@ export default function LocationContactForm({
       ? { ...defaultSocialMedia, ...initialData.socialMedia }
       : defaultSocialMedia
   });
+
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(user?.coverPhoto);
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfilePicture(user.profilePicture);
+      setCoverPhoto(user.coverPhoto);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (onUpdate) {
@@ -142,169 +156,189 @@ export default function LocationContactForm({
     }));
   };
 
+  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
+    if (type === 'profile') {
+      setProfilePicture(url);
+    } else {
+      setCoverPhoto(url);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Location Section */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium flex items-center">
-          <MapPin className="mr-2 h-5 w-5 text-primary" />
-          Business Address
-        </h3>
-        
-        <div className="space-y-2">
-          <Label htmlFor="address">Street Address*</Label>
-          <Input 
-            id="address" 
-            name="address" 
-            value={formData.address} 
-            onChange={handleChange}
-            placeholder="e.g., 123 Business Street"
-            required
-          />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="city">City*</Label>
-            <Input 
-              id="city" 
-              name="city" 
-              value={formData.city} 
-              onChange={handleChange}
-              placeholder="e.g., San Francisco"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="state">State/Province*</Label>
-            <Input 
-              id="state" 
-              name="state" 
-              value={formData.state} 
-              onChange={handleChange}
-              placeholder="e.g., CA"
-              required
-            />
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="zipCode">Zip/Postal Code*</Label>
-            <Input 
-              id="zipCode" 
-              name="zipCode" 
-              value={formData.zipCode} 
-              onChange={handleChange}
-              placeholder="e.g., 94105"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="country">Country*</Label>
-            <Input 
-              id="country" 
-              name="country" 
-              value={formData.country} 
-              onChange={handleChange}
-              placeholder="e.g., United States"
-              required
-            />
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Profile Image Editor */}
+      <div className="mb-6">
+        <ProfileImageEditor
+          profilePicture={profilePicture}
+          coverPhoto={coverPhoto}
+          onUpdate={handleImageUpdate}
+          isOrganization={false}
+        />
       </div>
-      
-      {/* Contact Section */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium flex items-center">
-          <Phone className="mr-2 h-5 w-5 text-primary" />
-          Contact Details
-        </h3>
-        
-        <div className="space-y-2">
-          <Label htmlFor="phone">Phone Number*</Label>
-          <Input 
-            id="phone" 
-            name="phone" 
-            value={formData.phone} 
-            onChange={handleChange}
-            placeholder="e.g., +1 (555) 123-4567"
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="email">Email Address*</Label>
-          <Input 
-            id="email" 
-            name="email" 
-            type="email"
-            value={formData.email} 
-            onChange={handleChange}
-            placeholder="e.g., contact@acmecorp.com"
-            required
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="website">Website</Label>
-          <Input 
-            id="website" 
-            name="website" 
-            value={formData.website} 
-            onChange={handleChange}
-            placeholder="e.g., www.acmecorp.com"
-          />
-        </div>
-        
-        <h3 className="text-lg font-medium flex items-center mt-6">
-          <Globe className="mr-2 h-5 w-5 text-primary" />
-          Social Media
-        </h3>
-        
-        <div className="space-y-2">
-          <Label htmlFor="socialMedia.linkedin">LinkedIn</Label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
-              <LinkIcon className="h-4 w-4" />
-            </span>
-            <Input
-              id="socialMedia.linkedin"
-              name="socialMedia.linkedin"
-              value={formData.socialMedia.linkedin}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Location Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium flex items-center">
+            <MapPin className="mr-2 h-5 w-5 text-primary" />
+            Business Address
+          </h3>
+          
+          <div className="space-y-2">
+            <Label htmlFor="address">Street Address*</Label>
+            <Input 
+              id="address" 
+              name="address" 
+              value={formData.address} 
               onChange={handleChange}
-              placeholder="e.g., linkedin.com/company/acmecorp"
-              className="rounded-l-none"
+              placeholder="e.g., 123 Business Street"
+              required
             />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="city">City*</Label>
+              <Input 
+                id="city" 
+                name="city" 
+                value={formData.city} 
+                onChange={handleChange}
+                placeholder="e.g., San Francisco"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">State/Province*</Label>
+              <Input 
+                id="state" 
+                name="state" 
+                value={formData.state} 
+                onChange={handleChange}
+                placeholder="e.g., CA"
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="zipCode">Zip/Postal Code*</Label>
+              <Input 
+                id="zipCode" 
+                name="zipCode" 
+                value={formData.zipCode} 
+                onChange={handleChange}
+                placeholder="e.g., 94105"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="country">Country*</Label>
+              <Input 
+                id="country" 
+                name="country" 
+                value={formData.country} 
+                onChange={handleChange}
+                placeholder="e.g., United States"
+                required
+              />
+            </div>
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        {/* Contact Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium flex items-center">
+            <Phone className="mr-2 h-5 w-5 text-primary" />
+            Contact Details
+          </h3>
+          
           <div className="space-y-2">
-            <Label htmlFor="socialMedia.twitter">Twitter/X</Label>
+            <Label htmlFor="phone">Phone Number*</Label>
+            <Input 
+              id="phone" 
+              name="phone" 
+              value={formData.phone} 
+              onChange={handleChange}
+              placeholder="e.g., +1 (555) 123-4567"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address*</Label>
+            <Input 
+              id="email" 
+              name="email" 
+              type="email"
+              value={formData.email} 
+              onChange={handleChange}
+              placeholder="e.g., contact@acmecorp.com"
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="website">Website</Label>
+            <Input 
+              id="website" 
+              name="website" 
+              value={formData.website} 
+              onChange={handleChange}
+              placeholder="e.g., www.acmecorp.com"
+            />
+          </div>
+          
+          <h3 className="text-lg font-medium flex items-center mt-6">
+            <Globe className="mr-2 h-5 w-5 text-primary" />
+            Social Media
+          </h3>
+          
+          <div className="space-y-2">
+            <Label htmlFor="socialMedia.linkedin">LinkedIn</Label>
             <div className="flex">
               <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
-                @
+                <LinkIcon className="h-4 w-4" />
               </span>
               <Input
-                id="socialMedia.twitter"
-                name="socialMedia.twitter"
-                value={formData.socialMedia.twitter}
+                id="socialMedia.linkedin"
+                name="socialMedia.linkedin"
+                value={formData.socialMedia.linkedin}
                 onChange={handleChange}
-                placeholder="e.g., acmecorp"
+                placeholder="e.g., linkedin.com/company/acmecorp"
                 className="rounded-l-none"
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="socialMedia.facebook">Facebook</Label>
-            <Input 
-              id="socialMedia.facebook" 
-              name="socialMedia.facebook" 
-              value={formData.socialMedia.facebook} 
-              onChange={handleChange}
-              placeholder="e.g., facebook.com/acmecorp"
-            />
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="socialMedia.twitter">Twitter/X</Label>
+              <div className="flex">
+                <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500">
+                  @
+                </span>
+                <Input
+                  id="socialMedia.twitter"
+                  name="socialMedia.twitter"
+                  value={formData.socialMedia.twitter}
+                  onChange={handleChange}
+                  placeholder="e.g., acmecorp"
+                  className="rounded-l-none"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="socialMedia.facebook">Facebook</Label>
+              <Input 
+                id="socialMedia.facebook" 
+                name="socialMedia.facebook" 
+                value={formData.socialMedia.facebook} 
+                onChange={handleChange}
+                placeholder="e.g., facebook.com/acmecorp"
+              />
+            </div>
           </div>
         </div>
       </div>

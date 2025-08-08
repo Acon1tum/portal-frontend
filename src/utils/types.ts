@@ -80,6 +80,7 @@ export interface Business {
   name: string;
   domain?: string;
   logo?: string;
+  coverPhoto?: string; // Base64 data URL for cover photo
   industry?: string;
   description?: string;
   location?: string;
@@ -131,6 +132,25 @@ export interface Account {
 
 
 // Updated User interface to match backend Prisma schema
+export interface Organization {
+  id: string;
+  name: string;
+  domain?: string;
+  logo?: string;
+  coverPhoto?: string; // Base64 data URL for cover photo
+  industry?: string;
+  description?: string;
+  location?: string;
+  phoneNumber?: string;
+  email?: string;
+  websiteUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  verificationStatus: VerificationStatus;
+  taglineCategories: TaglineCategory[];
+}
+
 export interface User {
   id: string;
   email: string;
@@ -140,8 +160,10 @@ export interface User {
   userType: UserType | null;
   currentJobStatus: CurrentJobStatus | null;
   isEmailVerified: boolean;
+  profilePicture?: string; // Base64 data URL for profile picture
+  coverPhoto?: string; // Base64 data URL for cover photo
   accounts: Account[];
-  business: Business | null;
+  organization: Organization | null;
 }
 
 // Backend session user interface (what the backend returns)
@@ -152,6 +174,8 @@ export interface SessionUser {
   role: UserRole;
   userType: UserType | null;
   currentJobStatus: CurrentJobStatus | null;
+  profilePicture?: string; // Base64 data URL for profile picture
+  coverPhoto?: string; // Base64 data URL for cover photo
 }
 
 // Chat related types

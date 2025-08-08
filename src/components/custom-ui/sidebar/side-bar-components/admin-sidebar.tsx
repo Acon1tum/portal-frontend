@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   Database,
   MessageSquare,
-  Newspaper
+  Newspaper,
+  User
 } from "lucide-react";
 
 import { NavMain } from "./nav-main";

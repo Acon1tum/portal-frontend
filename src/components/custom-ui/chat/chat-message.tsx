@@ -3,7 +3,7 @@ import { UserStatus, MessageStatus } from "@/utils/types";
 import { formatDistanceToNow, format } from "date-fns";
 import { Check, CheckCheck, Trash2, Reply, Copy, MoreHorizontal, Image, FileText, X } from "lucide-react";
 import UserAvatar from "./user-avatar";
-import { ChatMessage } from "@/service/chatService";
+import type { ChatMessage } from "@/service/chatService";
 
 interface ChatMessageProps {
   message: ChatMessage;
@@ -30,11 +30,39 @@ const ChatMessage: FC<ChatMessageProps> = ({
   const [showFullTime, setShowFullTime] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   
-  const formattedTime = formatDistanceToNow(new Date(message.createdAt), {
-    addSuffix: true,
-  });
-  
-  const fullTime = format(new Date(message.createdAt), 'PPpp');
+  // Safely handle date formatting with fallback
+  const getFormattedTime = () => {
+    try {
+      if (!message.createdAt) {
+        console.warn('Message has no createdAt:', message);
+        return 'Just now';
+      }
+      const date = new Date(message.createdAt);
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid createdAt date:', message.createdAt, 'for message:', message);
+        return 'Just now';
+      }
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch (error) {
+      console.error('Error formatting message time:', error, 'for message:', message);
+      return 'Just now';
+    }
+  };
+
+  const getFullTime = () => {
+    try {
+      if (!message.createdAt) return 'Unknown time';
+      const date = new Date(message.createdAt);
+      if (isNaN(date.getTime())) return 'Unknown time';
+      return format(date, 'PPpp');
+    } catch (error) {
+      console.error('Error formatting full message time:', error);
+      return 'Unknown time';
+    }
+  };
+
+  const formattedTime = getFormattedTime();
+  const fullTime = getFullTime();
   
   const handleCopyText = () => {
     navigator.clipboard.writeText(message.content);
@@ -55,7 +83,7 @@ const ChatMessage: FC<ChatMessageProps> = ({
     setShowActions(false);
   };
   
-  const renderAttachment = (attachment: ChatMessage['attachments'][0]) => {
+  const renderAttachment = (attachment: NonNullable<ChatMessage['attachments']>[0]) => {
     if (!attachment) return null;
     
     const isImage = attachment.fileType?.startsWith('image/');
