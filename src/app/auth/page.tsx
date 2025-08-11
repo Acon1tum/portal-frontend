@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-
 import DesignLogin from "@/components/custom-ui/auth/DesignLeft";
 import LoginForm from "@/components/custom-ui/auth/Login";
 import ResetPasswordForm from "@/components/custom-ui/auth/ResetPassword";
@@ -10,7 +9,6 @@ import RegisterForm from "@/components/custom-ui/auth/Register";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-
 
 // Define form type to track which form is currently active
 type FormType = "login" | "reset" | "register";
@@ -30,9 +28,12 @@ export function AuthTemplate({
   return (
     <div className={cn("flex flex-col gap-6 ", className)} {...props}>
       <Card className="overflow-hidden rounded-xl py-0">
-        <CardContent className="p-0 flex flex-row-reverse w-[70dvw] h-[80dvh] ">
-          {/* Right Side with conditional rendering */}
-          <div className="p-6 md:p-8 w-[70%] h-full justify-center items-center flex">
+        <CardContent className="p-0 flex flex-row-reverse w-[70dvw] h-[80dvh] relative">
+          {/* Right Side with sliding animation */}
+          <div className={cn(
+            "p-6 md:p-8 w-[50%] h-full justify-center items-center flex transition-transform duration-500 ease-in-out",
+            activeForm === "register" ? "transform translate-x-[-108%]" : "transform translate-x-0"
+          )}>
             <div className="w-full max-w-md">
               {/* Render the appropriate form based on activeForm state */}
               {activeForm === "login" && (
@@ -78,8 +79,13 @@ export function AuthTemplate({
             </div>
           </div>
 
-          {/* Left side design remains the same */}
-          <DesignLogin />
+          {/* Left side design with sliding animation and conditional animation */}
+          <div className={cn(
+            "transition-transform duration-500 ease-in-out",
+            activeForm === "register" ? "transform translate-x-[91%]" : "transform translate-x-0"
+          )}>
+            <DesignLogin animation={activeForm === "register" ? "radar" : "submarine"} />
+          </div>
         </CardContent>
       </Card>
     </div>
