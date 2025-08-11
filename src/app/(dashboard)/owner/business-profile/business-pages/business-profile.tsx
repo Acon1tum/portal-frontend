@@ -1,30 +1,12 @@
 import { Business, VerificationStatus } from "@/utils/types";
 import { Building, MessageSquare, Share2, Bookmark, CheckCircle, Clock, AlertCircle } from "lucide-react";
-import { ProfileImageEditor } from "@/components/custom-ui/profile/ProfileImageEditor";
-import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface BusinessProfileHeaderProps {
   business: Business;
 }
 
 export default function BusinessProfileHeader({ business }: BusinessProfileHeaderProps) {
-  const [profilePicture, setProfilePicture] = useState<string | undefined>(business.logo);
-  const [coverPhoto, setCoverPhoto] = useState<string | undefined>(business.coverPhoto);
-
-  // Update local state when business data changes
-  useEffect(() => {
-    setProfilePicture(business.logo);
-    setCoverPhoto(business.coverPhoto);
-  }, [business]);
-
-  const handleImageUpdate = (type: 'profile' | 'cover', url: string) => {
-    if (type === 'profile') {
-      setProfilePicture(url);
-    } else {
-      setCoverPhoto(url);
-    }
-  };
-
   const getVerificationBadge = (status: VerificationStatus) => {
     switch (status) {
       case VerificationStatus.VERIFIED:
@@ -52,44 +34,75 @@ export default function BusinessProfileHeader({ business }: BusinessProfileHeade
   };
 
   return (
-    <div className="relative">
-      {/* Cover Photo and Profile Picture Editor */}
-      <div className="relative">
-        <ProfileImageEditor
-          profilePicture={profilePicture}
-          coverPhoto={coverPhoto}
-          onUpdate={handleImageUpdate}
-          isOrganization={true}
-          organizationId={business.id}
+    <div className="relative h-64 w-full overflow-hidden">
+      {/* Cover photo or gradient background */}
+      {business.coverPhoto && business.coverPhoto.startsWith('data:image/') ? (
+        <Image
+          src={business.coverPhoto}
+          alt="Cover photo"
+          fill
+          className="object-cover"
         />
-      </div>
-
-      {/* Business Info Overlay */}
-      <div className="absolute -bottom-16 left-8 flex items-end">
-        <div className="ml-4 mb-4">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-3xl font-bold text-white">{business.name}</h1>
-            {getVerificationBadge(business.verificationStatus)}
+      ) : (
+        <div className="w-full h-full bg-gradient-to-r from-chart-1/90 to-chart-3/90" />
+      )}
+      
+      {/* Business info section - positioned to avoid overlap */}
+      <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+        <div className="flex items-end space-x-4">
+          {/* Logo container */}
+          <div className="w-24 h-24 bg-card rounded-lg shadow-lg overflow-hidden border-4 border-background flex-shrink-0">
+            {business.logo && business.logo.startsWith('data:image/') ? (
+              <Image
+                src={business.logo}
+                alt={`${business.name} logo`}
+                fill
+                className="object-cover"
+              />
+            ) : business.logo && business.logo.startsWith('/') ? (
+              <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-2xl font-bold">
+                {business.name.charAt(0)}
+              </div>
+            ) : business.logo ? (
+              <Image
+                src={business.logo}
+                alt={`${business.name} logo`}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-2xl font-bold">
+                {business.name.charAt(0)}
+              </div>
+            )}
           </div>
-          <p className="text-white/90 flex items-center mt-1">
-            <Building className="h-4 w-4 mr-1" />
-            {business.industry}
-          </p>
+          
+          {/* Business details */}
+          <div className="flex flex-col space-y-2 min-w-0">
+            <div className="flex items-center space-x-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-white truncate">{business.name}</h1>
+              {getVerificationBadge(business.verificationStatus)}
+            </div>
+            <p className="text-white/90 flex items-center text-sm">
+              <Building className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{business.industry}</span>
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Action buttons */}
-      <div className="absolute right-8 bottom-8 flex space-x-3">
-        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition flex items-center">
-          <MessageSquare className="h-4 w-4 mr-2" />
-          Message
-        </button>
-        <button className="p-2 bg-card/30 backdrop-blur-sm text-white rounded-lg hover:bg-card/50 transition">
-          <Share2 className="h-5 w-5" />
-        </button>
-        <button className="p-2 bg-card/30 backdrop-blur-sm text-white rounded-lg hover:bg-card/50 transition">
-          <Bookmark className="h-5 w-5" />
-        </button>
+        {/* Action buttons */}
+        <div className="flex space-x-2 flex-shrink-0">
+          <button className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition flex items-center text-sm">
+            <MessageSquare className="h-4 w-4 mr-1" />
+            Message
+          </button>
+          <button className="p-2 bg-card/30 backdrop-blur-sm text-white rounded-lg hover:bg-card/50 transition">
+            <Share2 className="h-4 w-4" />
+          </button>
+          <button className="p-2 bg-card/30 backdrop-blur-sm text-white rounded-lg hover:bg-card/50 transition">
+            <Bookmark className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
