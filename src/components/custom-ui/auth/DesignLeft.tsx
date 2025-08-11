@@ -4,6 +4,7 @@ import Lottie from "lottie-react";
 import submarineAnimation from "../../../../public/shipping.json";
 import radarAnimation from "../../../../public/Radar.json";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 interface DesignLoginProps {
   animation?: "submarine" | "radar";
@@ -11,13 +12,18 @@ interface DesignLoginProps {
 
 const DesignLogin = ({ animation = "submarine" }: DesignLoginProps) => {
   const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const animationData = animation === "radar" ? radarAnimation : submarineAnimation;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="hidden md:block w-full h-full">
       <div className="w-full h-full relative overflow-hidden">
-        {theme === "dark" && (
-          <div className="absolute inset-0 bg-blue-600/0 z-10" />
+        {mounted && theme === "dark" && (
+          <div className="absolute inset-0 bg-blue-0/60 z-10" />
         )}
         <div className="absolute bottom-8 left-8 flex flex-col gap-2 z-20">
           <h1 className="text-white text-5xl font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">Marino Portal</h1>
