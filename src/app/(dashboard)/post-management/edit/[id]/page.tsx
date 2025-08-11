@@ -235,35 +235,37 @@ export default function EditPostPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto p-6 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <Link href={`/post-management/${posting.id}`}>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Post
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Edit Post</h1>
-            <p className="text-muted-foreground">Update post content and settings</p>
+            <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Edit Post</h1>
+            <p className="text-muted-foreground mt-1">Update post content and settings</p>
           </div>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Main Form */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
+          <div className="xl:col-span-3 space-y-8">
+            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
+              <CardHeader className="pt-6">
                 <CardTitle>Post Content</CardTitle>
                 <CardDescription>
                   Update the title and content of your post
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 pb-6">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
                   <Input
@@ -271,6 +273,7 @@ export default function EditPostPage() {
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="Enter post title"
+                    className="rounded-lg border-border/60 focus:border-primary"
                     required
                   />
                 </div>
@@ -283,6 +286,7 @@ export default function EditPostPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
                     placeholder="Enter post content"
                     rows={12}
+                    className="rounded-lg border-border/60 focus:border-primary resize-none"
                     required
                   />
                 </div>
@@ -291,17 +295,18 @@ export default function EditPostPage() {
 
             {/* Existing Attachments */}
             {posting.attachments && posting.attachments.length > 0 && (
-              <Card>
-                <CardHeader>
+              <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+                <div className="h-1 bg-gradient-to-r from-green-500/70 via-emerald-500/60 to-teal-500/60 rounded-t-xl" />
+                <CardHeader className="pt-6">
                   <CardTitle>Current Attachments</CardTitle>
                   <CardDescription>
                     Files currently attached to this post
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-6">
                   <div className="space-y-3">
                     {posting.attachments.map((attachment) => (
-                      <div key={attachment.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div key={attachment.id} className="flex items-center justify-between p-4 border border-border/60 rounded-lg hover:bg-muted/30 transition-colors">
                         <div className="flex items-center gap-3">
                           {isImageFile(attachment.fileType || '') ? (
                             <ImageIcon className="w-5 h-5 text-blue-500" />
@@ -316,7 +321,7 @@ export default function EditPostPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" asChild>
+                          <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50" asChild>
                             <a 
                               href={attachment.url} 
                               target="_blank" 
@@ -330,9 +335,9 @@ export default function EditPostPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            className="rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
                             onClick={() => removeExistingAttachment(attachment.id)}
                             disabled={removingAttachments.has(attachment.id)}
-                            className="text-destructive hover:text-destructive/80"
                           >
                             {removingAttachments.has(attachment.id) ? (
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
@@ -349,14 +354,15 @@ export default function EditPostPage() {
             )}
 
             {/* Add New Attachments */}
-            <Card>
-              <CardHeader>
+            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <div className="h-1 bg-gradient-to-r from-blue-500/70 via-purple-500/60 to-indigo-500/60 rounded-t-xl" />
+              <CardHeader className="pt-6">
                 <CardTitle>Add New Attachments</CardTitle>
                 <CardDescription>
                   Add additional files to your post (e.g., images, documents)
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pb-6">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="new-attachments" className="text-sm">
                     Select files to upload (max 5MB each)
@@ -367,7 +373,7 @@ export default function EditPostPage() {
                     multiple
                     onChange={handleFileChange}
                     accept=".jpg, .jpeg, .png, .pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx"
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 rounded-lg border-border/60"
                   />
                   {newAttachments.length > 0 && (
                     <div className="mt-4 space-y-2">
@@ -376,7 +382,7 @@ export default function EditPostPage() {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {newAttachments.map((file, index) => (
-                          <div key={index} className="flex items-center gap-2 bg-muted text-foreground text-sm px-3 py-2 rounded-lg border">
+                          <div key={index} className="flex items-center gap-2 bg-muted/50 text-foreground text-sm px-3 py-2 rounded-lg border border-border/60 hover:bg-muted/70 transition-colors">
                             {isImageFile(file.type) ? (
                               <ImageIcon className="w-4 h-4 text-blue-500" />
                             ) : (
@@ -404,23 +410,24 @@ export default function EditPostPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 xl:col-span-1">
             {/* Post Settings */}
-            <Card>
-              <CardHeader>
+            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <div className="h-1 bg-gradient-to-r from-green-500/70 via-emerald-500/60 to-teal-500/60 rounded-t-xl" />
+              <CardHeader className="pt-6">
                 <CardTitle>Post Settings</CardTitle>
                 <CardDescription>
                   Configure post type and visibility
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 pb-6">
                 <div className="space-y-2">
                   <Label htmlFor="postType">Post Type</Label>
                   <Select
                     value={formData.postType}
                     onValueChange={(value: PostType) => setFormData(prev => ({ ...prev, postType: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-lg border-border/60">
                       <SelectValue placeholder="Select post type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -450,14 +457,15 @@ export default function EditPostPage() {
             </Card>
 
             {/* Actions */}
-            <Card>
-              <CardHeader>
+            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <div className="h-1 bg-gradient-to-r from-orange-500/70 via-red-500/60 to-pink-500/60 rounded-t-xl" />
+              <CardHeader className="pt-6">
                 <CardTitle>Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4 pb-6">
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full rounded-lg hover:bg-primary/90"
                   disabled={saving || !formData.title.trim() || !formData.content.trim()}
                 >
                   {saving ? (
@@ -476,7 +484,7 @@ export default function EditPostPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full rounded-lg hover:bg-muted/50"
                   onClick={handleCancel}
                   disabled={saving}
                 >
@@ -488,8 +496,8 @@ export default function EditPostPage() {
 
             {/* Error Display */}
             {error && (
-              <Card className="border-destructive">
-                <CardContent className="pt-6">
+              <Card className="border-destructive rounded-xl">
+                <CardContent className="pt-6 pb-6">
                   <p className="text-destructive text-sm">{error}</p>
                 </CardContent>
               </Card>
@@ -497,6 +505,7 @@ export default function EditPostPage() {
           </div>
         </div>
       </form>
+      </div>
     </div>
   );
 } 

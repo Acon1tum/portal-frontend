@@ -155,33 +155,35 @@ export default function ViewPostPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto p-6 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <Link href="/posts">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Posts
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{posting.title}</h1>
-            <p className="text-muted-foreground">View post details and manage settings</p>
+            <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">{posting.title}</h1>
+            <p className="text-muted-foreground mt-1">View post details and manage settings</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           {canEditPost && (
             <>
               <Link href={`/posts/edit/${posting.id}`}>
-                <Button variant="outline">
+                <Button variant="outline" className="rounded-lg hover:bg-muted/50">
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
                 </Button>
               </Link>
               <Button
                 variant="outline"
+                className="rounded-lg hover:bg-muted/50"
                 onClick={handleTogglePublish}
               >
                 {posting.isPublished ? (
@@ -198,8 +200,8 @@ export default function ViewPostPage() {
               </Button>
               <Button
                 variant="outline"
+                className="rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={handleDelete}
-                className="text-destructive hover:text-destructive"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
@@ -209,62 +211,64 @@ export default function ViewPostPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-3 space-y-8">
           {/* Post Content */}
-          <Card>
-            <CardHeader>
+          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+            <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
+            <CardHeader className="pt-6">
               <CardTitle>Post Content</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <div className="prose max-w-none">
-                <p className="whitespace-pre-wrap text-foreground">{posting.content}</p>
+                <p className="whitespace-pre-wrap text-foreground leading-relaxed text-lg">{posting.content}</p>
               </div>
             </CardContent>
           </Card>
 
           {/* Attachments */}
           {posting.attachments && posting.attachments.length > 0 && (
-            <Card>
-              <CardHeader>
+            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <div className="h-1 bg-gradient-to-r from-blue-500/70 via-purple-500/60 to-indigo-500/60 rounded-t-xl" />
+              <CardHeader className="pt-6">
                 <CardTitle>Attachments</CardTitle>
                 <CardDescription>
                   Files attached to this post
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="pb-6">
+                <div className="space-y-6">
                   {posting.attachments.map((attachment) => (
                     <div key={attachment.id}>
                       {attachment.fileType && isImageFile(attachment.fileType) ? (
                         // Image display - Facebook style
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <div className="flex items-center gap-3">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted">
+                            <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-muted/40 ring-1 ring-border/50">
                               {getViewableImageUrl(attachment) ? (
                                 <Image
                                   src={getViewableImageUrl(attachment)}
                                   alt={attachment.fileName || 'Attachment'}
                                   fill
                                   className="object-cover"
-                                  sizes="64px"
+                                  sizes="80px"
                                 />
                               ) : (
                                 <div className="flex items-center justify-center h-full text-muted-foreground">
-                                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                   </svg>
                                 </div>
                               )}
                             </div>
                             <div className="flex-1">
-                              <p className="font-medium text-foreground">{attachment.fileName || 'Unnamed image'}</p>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="font-semibold text-foreground text-lg">{attachment.fileName || 'Unnamed image'}</p>
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
                               </p>
                             </div>
-                            <Button variant="outline" size="sm" asChild>
+                            <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50" asChild>
                               <a 
                                 href={attachment.url} 
                                 target="_blank" 
@@ -278,39 +282,39 @@ export default function ViewPostPage() {
                           </div>
                           {/* Large image preview */}
                           {getViewableImageUrl(attachment) ? (
-                            <div className="relative w-full max-w-2xl mx-auto">
+                            <div className="relative w-full max-w-3xl mx-auto">
                               <Image
                                 src={getViewableImageUrl(attachment)}
                                 alt={attachment.fileName || 'Attachment'}
                                 width={800}
                                 height={600}
-                                className="w-full h-auto rounded-lg object-contain max-h-96"
+                                className="w-full h-auto rounded-xl object-contain max-h-[500px] shadow-lg"
                                 sizes="(max-width: 768px) 100vw, 800px"
                               />
                             </div>
                           ) : (
-                            <div className="flex items-center justify-center p-8 border border-border rounded-lg bg-muted">
+                            <div className="flex items-center justify-center p-12 border border-border/50 rounded-xl bg-muted/30">
                               <div className="text-center text-muted-foreground">
-                                <svg className="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                <p className="font-medium">Image preview unavailable</p>
-                                <p className="text-sm opacity-75">Click download to view the image</p>
+                                <p className="font-semibold text-lg">Image preview unavailable</p>
+                                <p className="text-sm opacity-75 mt-1">Click download to view the image</p>
                               </div>
                             </div>
                           )}
                         </div>
                       ) : (
                         // Non-image file display
-                        <div className="flex items-center gap-3 p-3 border border-border rounded-lg">
+                        <div className="flex items-center gap-4 p-4 border border-border/60 rounded-xl hover:bg-muted/30 transition-colors">
                           <FileText className="w-5 h-5 text-muted-foreground" />
                           <div className="flex-1">
-                            <p className="font-medium text-foreground">{attachment.fileName || 'Unnamed file'}</p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="font-semibold text-foreground text-lg">{attachment.fileName || 'Unnamed file'}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
                               {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
                             </p>
                           </div>
-                          <Button variant="outline" size="sm" asChild>
+                          <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50" asChild>
                             <a 
                               href={attachment.url} 
                               target="_blank" 
@@ -332,25 +336,27 @@ export default function ViewPostPage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-6 xl:col-span-1">
           {/* Post Info */}
-          <Card>
-            <CardHeader>
+          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+            <div className="h-1 bg-gradient-to-r from-green-500/70 via-emerald-500/60 to-teal-500/60 rounded-t-xl" />
+            <CardHeader className="pt-6">
               <CardTitle>Post Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 pb-6">
               <div className="flex items-center gap-2">
                 <Badge 
                   variant={posting.isPublished ? "default" : "secondary"}
+                  className="rounded-lg"
                 >
                   {posting.isPublished ? "Published" : "Draft"}
                 </Badge>
-                <Badge className={getPostTypeColor(posting.postType)}>
+                <Badge className={`${getPostTypeColor(posting.postType)} rounded-lg`}>
                   {posting.postType.replace('_', ' ')}
                 </Badge>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <span>Created: {formatDate(posting.createdAt)}</span>
@@ -382,14 +388,15 @@ export default function ViewPostPage() {
 
           {/* Quick Actions */}
           {canEditPost && (
-            <Card>
-              <CardHeader>
+            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <div className="h-1 bg-gradient-to-r from-orange-500/70 via-red-500/60 to-pink-500/60 rounded-t-xl" />
+              <CardHeader className="pt-6">
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4 pb-6">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full rounded-lg hover:bg-muted/50"
                   onClick={handleTogglePublish}
                 >
                   {posting.isPublished ? (
@@ -406,24 +413,27 @@ export default function ViewPostPage() {
                 </Button>
                 
                 <Link href={`/posts/edit/${posting.id}`}>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full rounded-lg hover:bg-muted/50">
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Post
                   </Button>
                 </Link>
 
-                <Button
-                  variant="outline"
-                  className="w-full text-destructive hover:text-destructive"
-                  onClick={handleDelete}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Post
-                </Button>
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={handleDelete}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Post
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

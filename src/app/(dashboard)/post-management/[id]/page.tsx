@@ -154,31 +154,33 @@ export default function AdminViewPostPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto p-6 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <Link href="/post-management">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Management
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{posting.title}</h1>
-            <p className="text-muted-foreground">View post details and manage settings</p>
+            <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">{posting.title}</h1>
+            <p className="text-muted-foreground mt-1">View post details and manage settings</p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Link href={`/post-management/edit/${posting.id}`}>
-            <Button variant="outline">
+            <Button variant="outline" className="rounded-lg hover:bg-muted/50">
               <Edit className="w-4 h-4 mr-2" />
               Edit
             </Button>
           </Link>
           <Button
             variant="outline"
+            className="rounded-lg hover:bg-muted/50"
             onClick={handleTogglePublish}
           >
             {posting.isPublished ? (
@@ -195,8 +197,8 @@ export default function AdminViewPostPage() {
           </Button>
           <Button
             variant="outline"
+            className="rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={handleDelete}
-            className="text-destructive hover:text-destructive"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Delete
@@ -204,67 +206,69 @@ export default function AdminViewPostPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-3 space-y-8">
           {/* Post Content */}
-          <Card>
-            <CardHeader>
+          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+            <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
+            <CardHeader className="pt-6">
               <CardTitle>Post Content</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <div className="prose max-w-none">
-                <p className="whitespace-pre-wrap text-foreground">{posting.content}</p>
+                <p className="whitespace-pre-wrap text-foreground leading-relaxed text-lg">{posting.content}</p>
               </div>
             </CardContent>
           </Card>
 
           {/* Attachments */}
           {posting.attachments && posting.attachments.length > 0 && (
-            <Card>
-              <CardHeader>
+            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <div className="h-1 bg-gradient-to-r from-blue-500/70 via-purple-500/60 to-indigo-500/60 rounded-t-xl" />
+              <CardHeader className="pt-6">
                 <CardTitle>Attachments</CardTitle>
                 <CardDescription>
                   Files attached to this post
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="pb-6">
+                <div className="space-y-6">
                   {posting.attachments.map((attachment) => (
                     <div
                       key={attachment.id}
-                      className="border rounded-lg overflow-hidden"
+                      className="border border-border/60 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
                     >
-                                             {/* Image Preview */}
-                       {attachment.fileType && isImageFile(attachment.fileType) && getViewableImageUrl(attachment) && (
-                         <div className="relative w-full bg-muted">
-                           <Image
-                             src={getViewableImageUrl(attachment)}
-                             alt={attachment.fileName || 'Attachment'}
-                             width={800}
-                             height={600}
-                             className="w-full h-auto object-contain max-h-64"
-                             onError={() => {
-                               // Next.js Image handles errors gracefully
-                             }}
-                           />
-                         </div>
-                       )}
+                      {/* Image Preview */}
+                      {attachment.fileType && isImageFile(attachment.fileType) && getViewableImageUrl(attachment) && (
+                        <div className="relative w-full bg-muted/40">
+                          <Image
+                            src={getViewableImageUrl(attachment)}
+                            alt={attachment.fileName || 'Attachment'}
+                            width={800}
+                            height={600}
+                            className="w-full h-auto object-contain max-h-80"
+                            onError={() => {
+                              // Next.js Image handles errors gracefully
+                            }}
+                          />
+                        </div>
+                      )}
                       
                       {/* File Info */}
-                      <div className="flex items-center gap-3 p-3">
+                      <div className="flex items-center gap-4 p-4">
                         {attachment.fileType && isImageFile(attachment.fileType) ? (
                           <ImageIcon className="w-5 h-5 text-muted-foreground" />
                         ) : (
                           <FileText className="w-5 h-5 text-muted-foreground" />
                         )}
                         <div className="flex-1">
-                          <p className="font-medium">{attachment.fileName || 'Unnamed file'}</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="font-semibold text-lg">{attachment.fileName || 'Unnamed file'}</p>
+                          <p className="text-sm text-muted-foreground mt-1">
                             {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
                           </p>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
+                        <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50" asChild>
                           <a 
                             href={attachment.url} 
                             target="_blank" 
@@ -285,25 +289,27 @@ export default function AdminViewPostPage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-6 xl:col-span-1">
           {/* Post Info */}
-          <Card>
-            <CardHeader>
+          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+            <div className="h-1 bg-gradient-to-r from-green-500/70 via-emerald-500/60 to-teal-500/60 rounded-t-xl" />
+            <CardHeader className="pt-6">
               <CardTitle>Post Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6 pb-6">
               <div className="flex items-center gap-2">
                 <Badge 
                   variant={posting.isPublished ? "default" : "secondary"}
+                  className="rounded-lg"
                 >
                   {posting.isPublished ? "Published" : "Draft"}
                 </Badge>
-                <Badge className={getPostTypeColor(posting.postType)}>
+                <Badge className={`${getPostTypeColor(posting.postType)} rounded-lg`}>
                   {posting.postType.replace('_', ' ')}
                 </Badge>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <span>Created: {formatDate(posting.createdAt)}</span>
@@ -334,14 +340,15 @@ export default function AdminViewPostPage() {
           </Card>
 
           {/* Quick Actions */}
-          <Card>
-            <CardHeader>
+          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+            <div className="h-1 bg-gradient-to-r from-orange-500/70 via-red-500/60 to-pink-500/60 rounded-t-xl" />
+            <CardHeader className="pt-6">
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4 pb-6">
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full rounded-lg hover:bg-muted/50"
                 onClick={handleTogglePublish}
               >
                 {posting.isPublished ? (
@@ -358,23 +365,26 @@ export default function AdminViewPostPage() {
               </Button>
               
               <Link href={`/post-management/edit/${posting.id}`}>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full rounded-lg hover:bg-muted/50">
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Post
                 </Button>
               </Link>
 
+              <div className="pt-2">
               <Button
                 variant="outline"
-                className="w-full text-destructive hover:text-destructive"
+                className="w-full rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={handleDelete}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete Post
               </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
+      </div>
       </div>
     </div>
   );

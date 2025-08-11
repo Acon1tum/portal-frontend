@@ -87,15 +87,15 @@ function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbac
           loading="lazy"
         />
       ) : (
-        <Image
-          src={imageUrl}
-          alt={attachment.fileName || 'Post image'}
-          width={800}
-          height={600}
-          className="w-full h-auto object-contain rounded-lg max-h-[600px]"
-          sizes="(max-width: 768px) 100vw, 800px"
-          onError={() => setHasError(true)}
-        />
+      <Image
+        src={imageUrl}
+        alt={attachment.fileName || 'Post image'}
+        width={800}
+        height={600}
+        className="w-full h-auto object-contain rounded-lg max-h-[600px]"
+        sizes="(max-width: 768px) 100vw, 800px"
+        onError={() => setHasError(true)}
+      />
       )}
     </div>
   );
@@ -598,14 +598,14 @@ export default function PostsPage() {
 
                 {/* View Post Button */}
                 {!expandedCommentsByPost[posting.id] && (
-                  <div className="px-6 pb-4">
-                    <Link href={`/posts/view/${posting.id}`}>
+                <div className="px-6 pb-4">
+                  <Link href={`/posts/view/${posting.id}`}>
                       <Button variant="outline" className="w-full rounded-lg" size="sm">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Full Post
-                      </Button>
-                    </Link>
-                  </div>
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Full Post
+                    </Button>
+                  </Link>
+                </div>
                 )}
                 {expandedCommentsByPost[posting.id] && (
                   <div className="px-6 pt-2 pb-4 border-t border-border/50">

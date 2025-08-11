@@ -82,7 +82,7 @@ export default function UserProfileHeader({ user }: UserProfileHeaderProps) {
       </div>
 
       {/* User Info Overlay */}
-      <div className="absolute -bottom-16 left-8 flex items-end">
+      <div className="absolute -bottom-14 left-40 flex items-end">
         <div className="ml-4 mb-4">
           <div className="flex items-center space-x-2">
             <h1 className="text-3xl font-bold text-white">{user.name || "Anonymous User"}</h1>
@@ -110,7 +110,7 @@ export default function UserProfileHeader({ user }: UserProfileHeaderProps) {
       </div>
 
       {/* Action buttons */}
-      <div className="absolute right-8 bottom-8 flex space-x-3">
+      <div className="absolute right-8 bottom-3 flex space-x-3">
         <button 
           onClick={handleMessageClick}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition flex items-center"
