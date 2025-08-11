@@ -44,7 +44,12 @@ export default function ContactList({
     setIsSearching(true);
     try {
       const results = await onSearchUsers(query);
-      setSearchResults(results);
+      
+      // Filter out contacts that already exist in the conversations list
+      const existingContactIds = new Set(contacts.map(contact => contact.id));
+      const filteredResults = results.filter(user => !existingContactIds.has(user.id));
+      
+      setSearchResults(filteredResults);
     } catch (error) {
       console.error('Error searching users:', error);
       setSearchResults([]);
@@ -143,27 +148,40 @@ export default function ContactList({
             </div>
           </div>
         ) : (
-          contacts.map((contact) => (
-            <div
-              key={contact.id}
-              className={`flex items-center p-3 hover:bg-muted cursor-pointer ${
-                selectedContact?.id === contact.id ? 'bg-muted' : ''
-              }`}
-              onClick={() => onSelectContact(contact)}
-            >
-              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                <User className="h-4 w-4 text-primary" />
+          <>
+            {/* Info section for existing conversations */}
+            <div className="p-3 border-b border-border bg-muted/20">
+              <div className="text-[0.625rem] font-medium text-muted-foreground uppercase tracking-wide">
+                Existing Conversations
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-foreground truncate">
-                  {contact.name}
-                </div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {contact.email}
-                </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {contacts.length} conversation{contacts.length !== 1 ? 's' : ''}
               </div>
             </div>
-          ))
+            
+            {/* Contacts list */}
+            {contacts.map((contact) => (
+              <div
+                key={contact.id}
+                className={`flex items-center p-3 hover:bg-muted cursor-pointer ${
+                  selectedContact?.id === contact.id ? 'bg-muted' : ''
+                }`}
+                onClick={() => onSelectContact(contact)}
+              >
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
+                  <User className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">
+                    {contact.name}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {contact.email}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </>
         )}
       </div>
     </div>

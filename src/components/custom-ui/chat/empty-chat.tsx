@@ -41,9 +41,6 @@ const EmptyState: FC<EmptyStateProps> = ({ contact, type }) => {
             <p className="text-muted-foreground mb-6">
               Start the conversation with {contact?.name}. Say hello or ask a question!
             </p>
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition">
-              Send a message
-            </button>
           </>
         )}
       </div>
