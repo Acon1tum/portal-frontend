@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -36,21 +36,28 @@ export function ImageUploadModal({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const validateFile = (file: File): string | null => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
-      return;
+      return 'Please select a valid image file';
     }
 
-    // Validate file size (max 20MB)
-    if (file.size > 20 * 1024 * 1024) {
-      setError('File size must be less than 20MB');
+    // Validate file size (max 10MB for better performance)
+    if (file.size > 10 * 1024 * 1024) {
+      return 'File size must be less than 10MB';
+    }
+
+    // Validate image dimensions (optional, can be enhanced)
+    return null;
+  };
+
+  const handleFileSelect = (file: File) => {
+    const validationError = validateFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -64,6 +71,33 @@ export function ImageUploadModal({
     };
     reader.readAsDataURL(file);
   };
+
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  }, []);
 
   const handleUpload = async () => {
     if (!selectedFile) return;
@@ -108,6 +142,7 @@ export function ImageUploadModal({
     setPreviewUrl(null);
     setUploadProgress(0);
     setError(null);
+    setIsDragOver(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -155,23 +190,41 @@ export function ImageUploadModal({
           {/* File Upload Area */}
           <div className="space-y-2">
             <Label htmlFor="image-upload">Select New Image</Label>
-            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+            <div
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                isDragOver
+                  ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <input
                 ref={fileInputRef}
                 id="image-upload"
                 type="file"
                 accept="image/*"
-                onChange={handleFileSelect}
+                onChange={handleFileInputChange}
                 className="hidden"
               />
               <div className="space-y-2">
                 <Upload className="h-8 w-8 mx-auto text-gray-400" />
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Click to upload or drag and drop
+                  {isDragOver ? 'Drop image here' : 'Click to upload or drag and drop'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500">
-                  PNG, JPG, GIF up to 20MB
+                  PNG, JPG, GIF up to 10MB
                 </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-2"
+                >
+                  Choose File
+                </Button>
               </div>
             </div>
           </div>
@@ -189,6 +242,18 @@ export function ImageUploadModal({
                   fill
                   className="object-cover"
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-2 right-2 h-6 w-6 p-0"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreviewUrl(null);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
             </div>
           )}

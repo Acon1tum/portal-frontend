@@ -1,6 +1,8 @@
 import { Business, VerificationStatus } from "@/utils/types";
-import { Building, MessageSquare, Share2, Bookmark, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Building, MessageSquare, Share2, Bookmark, CheckCircle, Clock, AlertCircle, Edit } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface BusinessProfileHeaderProps {
   business: Business;
@@ -92,6 +94,12 @@ export default function BusinessProfileHeader({ business }: BusinessProfileHeade
 
         {/* Action buttons */}
         <div className="flex space-x-2 flex-shrink-0">
+          <Link href={`/owner/business-profile/${business.id}/edit`}>
+            <Button variant="secondary" size="sm" className="gap-2">
+              <Edit className="h-4 w-4" />
+              Edit Profile
+            </Button>
+          </Link>
           <button className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition flex items-center text-sm">
             <MessageSquare className="h-4 w-4 mr-1" />
             Message

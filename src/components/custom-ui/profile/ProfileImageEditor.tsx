@@ -32,15 +32,25 @@ export function ProfileImageEditor({
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Helper function to check if an image is valid
+  const isValidImage = (imageUrl?: string) => {
+    return imageUrl && (imageUrl.startsWith('data:image/') || imageUrl.startsWith('http'));
+  };
+
   // Debug logging for image data
-  console.log('ProfileImageEditor - Profile picture type:', profilePicture?.startsWith('data:image/') ? 'base64' : 'file_url');
-  console.log('ProfileImageEditor - Cover photo type:', coverPhoto?.startsWith('data:image/') ? 'base64' : 'file_url');
-
-
+  console.log('ProfileImageEditor - Profile picture:', {
+    hasImage: !!profilePicture,
+    type: profilePicture?.startsWith('data:image/') ? 'base64' : 'url',
+    length: profilePicture?.length
+  });
+  console.log('ProfileImageEditor - Cover photo:', {
+    hasImage: !!coverPhoto,
+    type: coverPhoto?.startsWith('data:image/') ? 'base64' : 'url',
+    length: coverPhoto?.length
+  });
 
   const handleImageSuccess = async (type: 'profile' | 'cover', url: string) => {
-    console.log('Image upload success, saving base64 to database:', { type, urlLength: url?.length, userId: user?.id });
-    console.log('Full user object:', user);
+    console.log('Image upload success, saving to database:', { type, urlLength: url?.length, userId: user?.id });
     setIsUpdating(true);
     
     try {
@@ -54,26 +64,23 @@ export function ProfileImageEditor({
       let result;
       
       if (isOrganization && organizationId) {
-        console.log('Updating organization profile with base64');
+        console.log('Updating organization profile');
         result = await ImageUploadService.updateOrganizationProfile(organizationId, {
           [type === 'profile' ? 'profilePicture' : 'coverPhoto']: url
         });
       } else if (user?.id) {
-        console.log('Updating user profile with base64, ID:', user.id);
+        console.log('Updating user profile, ID:', user.id);
         result = await ImageUploadService.updateUserProfile(user.id, {
           [type === 'profile' ? 'profilePicture' : 'coverPhoto']: url
         });
       } else {
         console.error('No user ID or organization ID found');
-        console.error('User object:', user);
         toast.error('User information not found');
         return;
       }
 
       if (result?.success) {
-        console.log('Profile update successful with base64 data');
-        console.log('Saved base64 data length:', url?.length);
-        console.log('Saved base64 data starts with:', url?.substring(0, 50));
+        console.log('Profile update successful');
         onUpdate(type, url);
         toast.success(`${type === 'profile' ? 'Profile picture' : 'Cover photo'} saved successfully!`);
       } else {
@@ -97,12 +104,16 @@ export function ProfileImageEditor({
     <>
       {/* Cover Photo Section */}
       <div className="relative w-full h-48 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800 rounded-lg overflow-hidden">
-        {coverPhoto && coverPhoto.startsWith('data:image/') ? (
+        {isValidImage(coverPhoto) ? (
           <Image
             src={coverPhoto}
             alt="Cover photo"
             fill
             className="object-cover"
+            onError={(e) => {
+              console.error('Error loading cover photo:', e);
+              // Fallback to default background
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -129,8 +140,15 @@ export function ProfileImageEditor({
       <div className="relative -mt-16 ml-6">
         <div className="relative">
           <Avatar className="h-32 w-32 ring-4 ring-white dark:ring-gray-800">
-            {profilePicture && profilePicture.startsWith('data:image/') ? (
-              <AvatarImage src={profilePicture} alt="Profile picture" />
+            {isValidImage(profilePicture) ? (
+              <AvatarImage 
+                src={profilePicture} 
+                alt="Profile picture"
+                onError={(e) => {
+                  console.error('Error loading profile picture:', e);
+                  // Will fallback to AvatarFallback
+                }}
+              />
             ) : (
               <AvatarImage src={undefined as unknown as string} alt="Profile picture" />
             )}
@@ -160,7 +178,7 @@ export function ProfileImageEditor({
         onClose={() => setIsProfileModalOpen(false)}
         onSuccess={(url) => handleImageSuccess('profile', url)}
         type="profile"
-        currentImage={profilePicture && profilePicture.startsWith('data:image/') ? profilePicture : undefined}
+        currentImage={isValidImage(profilePicture) ? profilePicture : undefined}
         title="Update Profile Picture"
         description="Upload a new profile picture. Recommended size: 400x400 pixels."
         aspectRatio="square"
@@ -172,7 +190,7 @@ export function ProfileImageEditor({
         onClose={() => setIsCoverModalOpen(false)}
         onSuccess={(url) => handleImageSuccess('cover', url)}
         type="cover"
-        currentImage={coverPhoto && coverPhoto.startsWith('data:image/') ? coverPhoto : undefined}
+        currentImage={isValidImage(coverPhoto) ? coverPhoto : undefined}
         title="Update Cover Photo"
         description="Upload a new cover photo. Recommended size: 1200x400 pixels."
         aspectRatio="wide"
