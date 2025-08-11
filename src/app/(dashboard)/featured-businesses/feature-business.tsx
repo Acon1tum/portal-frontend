@@ -1,6 +1,6 @@
 // In your FeaturedBusinesses.tsx file:
 import Link from "next/link";
-import { Building, ChevronRight, MapPin } from "lucide-react";
+import { Building, ChevronRight, MapPin, Bookmark } from "lucide-react";
 import { FeaturedBusinessesProps } from "@/utils/types";
 
 export default function FeaturedBusinesses({ 
@@ -61,82 +61,89 @@ export default function FeaturedBusinesses({
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayedBusinesses.map((business) => (
-            <div key={business.id} className="bg-card rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md dark:border">
-              <div className="h-40 bg-gradient-to-r from-chart-1/50 to-chart-3/50 relative">
-                {/* Business logo or placeholder */}
-                <div className="absolute bottom-4 left-4">
-                  <div className="w-16 h-16 bg-card rounded-lg shadow-lg overflow-hidden border-2 border-background">
-                    {business.logo && business.logo.startsWith('/') ? (
-                      <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-2xl font-bold">
-                        {business.name.charAt(0)}
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-accent text-accent-foreground text-2xl font-bold">
-                        {business.name.charAt(0)}
-                      </div>
+          <div
+            key={business.id}
+            className="relative rounded-2xl overflow-hidden shadow-lg transition-transform duration-300 hover:scale-[1.02]"
+          >
+            {/* Background image - portrait fit */}
+            <div
+              className="h-[420px] bg-center bg-no-repeat bg-cover transform transition-transform duration-500 group-hover:scale-105"
+              style={{
+                backgroundImage: `url('/supply.jpg')`,
+              }}
+            >
+                             {/* Top-right verified badge */}
+               {business.verificationStatus === "VERIFIED" && (
+                 <div className="absolute top-4 right-4 bg-green-500/90 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full flex items-center border border-green-400/50 shadow-lg">
+                   <svg className="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                   </svg>
+                   Verified
+                 </div>
+               )}
+
+              {/* Premium badge */}
+              <div className="absolute top-4 left-4 flex items-center gap-1.5 px-4 py-1.5 
+                rounded-full text-xs font-bold tracking-wide uppercase
+                bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600
+                text-white shadow-lg border border-yellow-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-3.5 h-3.5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 
+                          18.54 5.82 22 7 14.14l-5-4.87 
+                          6.91-1.01L12 2z" />
+                </svg>
+                Premium
+              </div>
+
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            </div>
+
+            {/* Text content with blurred fade */}
+            <div className="absolute bottom-0 left-0 right-0">
+              <div className="relative">
+                {/* Blurry gradient background */}
+                <div className="absolute inset-0 backdrop-blur-xs bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+                {/* Text content */}
+                <div className="relative p-5 text-white">
+                  <h3 className="text-xl font-bold mb-1">{business.name}</h3>
+                  <p className="text-sm opacity-90 mb-3 line-clamp-2">
+                    {business.description ||
+                      'Experience a unique stay or service with premium quality.'}
+                  </p>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="bg-white/20 px-3 py-1 rounded-full text-xs flex items-center">
+                      ★ 4.8
+                    </span>
+                    <span className="bg-white/20 px-3 py-1 rounded-full text-xs">
+                      {business.industry || 'Category'}
+                    </span>
+                    {business.taglineCategories?.length > 0 && (
+                      <span className="bg-white/20 px-3 py-1 rounded-full text-xs">
+                        {business.taglineCategories[0].name}
+                      </span>
                     )}
                   </div>
-                </div>
-                
-                {/* Verification badge */}
-                {business.verificationStatus === "VERIFIED" && (
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
-                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Verified
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="p-4 pt-2">
-                <div className="mt-2">
-                  <h3 className="text-lg font-semibold text-card-foreground">{business.name}</h3>
-                  {business.industry && (
-                    <div className="flex items-center mt-1 text-sm text-muted-foreground">
-                      <Building className="h-4 w-4 mr-1" />
-                      {business.industry}
-                    </div>
-                  )}
-                  {business.location && (
-                    <div className="flex items-center mt-1 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {business.location}
-                    </div>
-                  )}
-                </div>
-                
-                {business.description && (
-                  <p className="mt-3 text-sm text-muted-foreground line-clamp-2">
-                    {business.description}
-                  </p>
-                )}
-                
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {business.taglineCategories.slice(0, 2).map((category) => (
-                    <span key={category.id} className="px-2 py-1 bg-secondary text-secondary-foreground rounded-full text-xs">
-                      {category.name}
-                    </span>
-                  ))}
-                  {business.taglineCategories.length > 2 && (
-                    <span className="px-2 py-1 bg-secondary text-secondary-foreground rounded-full text-xs">
-                      +{business.taglineCategories.length - 2} more
-                    </span>
-                  )}
-                </div>
-                
-                <div className="mt-4 pt-4 border-t border-border">
+
+                  {/* CTA button */}
                   <Link href={`/business-profile/${business.id}`}>
-                    <button className="w-full py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition">
+                    <button className="w-full py-3 bg-white text-gray-900 font-semibold rounded-full hover:bg-gray-200 transition">
                       View Profile
                     </button>
                   </Link>
                 </div>
               </div>
             </div>
-          ))}
+          </div>
+        ))}
         </div>
       </div>
     </section>
