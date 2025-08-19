@@ -9,26 +9,35 @@ import { Button } from '../../ui/button'
 import { User } from 'lucide-react'
 
 export function ResetPasswordForm({
-  onBackToLogin
+  onBackToLogin,
+  onLoadingChange
 }: {
   onBackToLogin?: () => void
+  onLoadingChange?: (loading: boolean) => void
 }) {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
     setSuccess('')
+    setLoading(true)
+    onLoadingChange?.(true) // Trigger full-screen loading
 
     try {
       const { message } = await passwordRecovery(email)
       setSuccess(message)
       setEmail('')
+      // Loading screen will stay visible - user can manually close or navigate
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred')
+      setLoading(false)
+      onLoadingChange?.(false) // Only hide loading on error
     }
+    // Removed finally block - loading stays visible on success
   }
 
   return (
@@ -58,6 +67,7 @@ export function ResetPasswordForm({
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
           />
         </div>
       </div>
@@ -72,8 +82,9 @@ export function ResetPasswordForm({
       <Button
         type="submit"
         className="w-full rounded-full bg-gradient-to-r from-green-400 via-green-600 to-green-800 text-white"
+        disabled={loading}
       >
-        Send Reset Link
+        {loading ? "Sending..." : "Send Reset Link"}
       </Button>
     </form>
   )

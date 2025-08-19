@@ -13,8 +13,10 @@ import { useAuth } from "@/lib/auth-context";
 
 export function LoginForm({
   onForgotPassword,
+  onLoadingChange,
 }: React.ComponentProps<"div"> & {
   onForgotPassword?: () => void;
+  onLoadingChange?: (loading: boolean) => void;
 }) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -27,6 +29,7 @@ export function LoginForm({
     e.preventDefault();
     setError("");
     setIsLoading(true);
+    onLoadingChange?.(true); // Trigger full-screen loading
 
     try {
       const result = await login(email, password);
@@ -53,19 +56,25 @@ export function LoginForm({
         } else {
           // For users with other roles or no role
           setError("Your account doesn't have access to the system. Please contact an administrator.");
+          setIsLoading(false);
+          onLoadingChange?.(false); // Only hide loading on error
         }
       } else {
         setError("Login successful but user data is missing. Please try again.");
+        setIsLoading(false);
+        onLoadingChange?.(false); // Only hide loading on error
       }
     } catch (err: Error | unknown) {
       console.error("Login error:", err);
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
-    } finally {
       setIsLoading(false);
+      onLoadingChange?.(false); // Only hide loading on error
     }
+    // Removed finally block - loading stays visible on success
   };
 
   const handleGoogleLogin = () => {
+    onLoadingChange?.(true); // Trigger full-screen loading
     signupWithGoogle();
     // Note: For Google login, you'll need to handle redirects after successful authentication
     // This would typically be done on the callback route from Google OAuth

@@ -294,11 +294,11 @@ const Dashboard = () => {
                     </Link>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="text-gray-500">
-                          <Filter size={16} className="mr-1" />
+                  <Button variant="ghost" size="sm" className="text-gray-500">
+                    <Filter size={16} className="mr-1" />
                           {newsFilter === "ALL" ? "All Posts" : getPostTypeDisplayName(newsFilter)}
                           <ChevronDown size={14} className="ml-1" />
-                        </Button>
+                  </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuItem onClick={() => setNewsFilter("ALL")}>All Posts</DropdownMenuItem>
@@ -378,7 +378,7 @@ const Dashboard = () => {
                     <div className="col-span-2 text-center py-8 text-gray-500">
                       <Briefcase size={24} className="mx-auto mb-2 opacity-50" />
                       <p>No items for this filter</p>
-                    </div>
+                      </div>
                   )}
                 </div>
               </CardContent>

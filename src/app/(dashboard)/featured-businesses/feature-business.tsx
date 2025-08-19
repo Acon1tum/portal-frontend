@@ -1,6 +1,6 @@
 // In your FeaturedBusinesses.tsx file:
 import Link from "next/link";
-import { Building, ChevronRight, MapPin, Bookmark } from "lucide-react";
+import { Building, ChevronRight, MapPin, Bookmark, Star  } from "lucide-react";
 import { FeaturedBusinessesProps } from "@/utils/types";
 
 export default function FeaturedBusinesses({ 
@@ -120,9 +120,23 @@ export default function FeaturedBusinesses({
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="bg-white/20 px-3 py-1 rounded-full text-xs flex items-center">
-                      ★ 4.8
-                    </span>
+                    {/* Enhanced Rating Section */}
+                  <div className="flex items-center gap-3 mb-1">
+                    {/* Star Rating */}
+                    <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-2 py-1 rounded-full border border-white/30">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      </div>
+                      <span className="text-xs font-semibold ml-1">4.8</span>
+                    </div>
+                    
+                    {/* Review Count */}
+                    <span className="text-xs opacity-80">(127 reviews)</span>
+                  </div>
                     <span className="bg-white/20 px-3 py-1 rounded-full text-xs">
                       {business.industry || 'Category'}
                     </span>

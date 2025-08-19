@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Lottie from "lottie-react";
+import steuerradAnimation from "../../../public/Steuerrad.json";
 
 import DesignLogin from "@/components/custom-ui/auth/DesignLeft";
 import LoginForm from "@/components/custom-ui/auth/Login";
@@ -19,14 +21,37 @@ export function AuthTemplate({
 }: React.ComponentProps<"div">) {
   // Change from boolean to string to handle three form states
   const [activeForm, setActiveForm] = useState<FormType>("login");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Updated toggle functions for specific form transitions
   const showLoginForm = () => setActiveForm("login");
   const showResetForm = () => setActiveForm("reset");
   const showRegisterForm = () => setActiveForm("register");
 
+  const handleLoadingChange = (loading: boolean) => {
+    setIsLoading(loading);
+  };
+
   return (
     <div className={cn("flex flex-col gap-6 ", className)} {...props}>
+      {/* Full-screen loading overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-32 h-32 mx-auto mb-4">
+              <Lottie
+                animationData={steuerradAnimation}
+                loop={true}
+                autoplay={true}
+                className="w-full h-full"
+              />
+            </div>
+            <p className="text-white text-lg font-semibold">Processing...</p>
+            <p className="text-white/70 text-sm mt-2">Please wait while we authenticate your request</p>
+          </div>
+        </div>
+      )}
+
       <Card className="overflow-hidden rounded-xl py-0">
         <CardContent className="p-0 flex flex-row-reverse w-[70dvw] h-[80dvh] relative">
           {/* Right Side with sliding animation */}
@@ -37,12 +62,22 @@ export function AuthTemplate({
             <div className="w-full max-w-md">
               {/* Render the appropriate form based on activeForm state */}
               {activeForm === "login" && (
-                <LoginForm onForgotPassword={showResetForm} />
+                <LoginForm 
+                  onForgotPassword={showResetForm} 
+                  onLoadingChange={handleLoadingChange}
+                />
               )}
               {activeForm === "reset" && (
-                <ResetPasswordForm onBackToLogin={showLoginForm} />
+                <ResetPasswordForm 
+                  onBackToLogin={showLoginForm} 
+                  onLoadingChange={handleLoadingChange}
+                />
               )}
-              {activeForm === "register" && <RegisterForm />}
+              {activeForm === "register" && (
+                <RegisterForm 
+                  onLoadingChange={handleLoadingChange}
+                />
+              )}
 
               {/* Conditional footer links */}
               <div className="mt-6 text-center">
@@ -51,6 +86,7 @@ export function AuthTemplate({
                     type="button"
                     onClick={showRegisterForm}
                     className="text-sm text-gray-500 hover:text-green-500"
+                    disabled={isLoading}
                   >
                     Do not have an account? Sign up
                   </button>
@@ -61,6 +97,7 @@ export function AuthTemplate({
                     type="button"
                     onClick={showLoginForm}
                     className="text-sm text-gray-500 hover:text-green-500"
+                    disabled={isLoading}
                   >
                     Already have an account? Log in
                   </button>
@@ -71,6 +108,7 @@ export function AuthTemplate({
                     type="button"
                     onClick={showLoginForm}
                     className="text-sm text-gray-500 hover:text-green-500"
+                    disabled={isLoading}
                   >
                     Back to login
                   </button>
@@ -84,7 +122,10 @@ export function AuthTemplate({
             "transition-transform duration-500 ease-in-out",
             activeForm === "register" ? "transform translate-x-[91%]" : "transform translate-x-0"
           )}>
-            <DesignLogin animation={activeForm === "register" ? "radar" : "submarine"} />
+            <DesignLogin 
+              animation={activeForm === "register" ? "radar" : "submarine"} 
+              loading={isLoading}
+            />
           </div>
         </CardContent>
       </Card>

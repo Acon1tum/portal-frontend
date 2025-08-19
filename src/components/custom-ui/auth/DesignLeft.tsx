@@ -3,14 +3,16 @@
 import Lottie from "lottie-react";
 import submarineAnimation from "../../../../public/shipping.json";
 import radarAnimation from "../../../../public/Radar.json";
+import steuerradAnimation from "../../../../public/Steuerrad.json";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 interface DesignLoginProps {
   animation?: "submarine" | "radar";
+  loading?: boolean;
 }
 
-const DesignLogin = ({ animation = "submarine" }: DesignLoginProps) => {
+const DesignLogin = ({ animation = "submarine", loading = false }: DesignLoginProps) => {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const animationData = animation === "radar" ? radarAnimation : submarineAnimation;

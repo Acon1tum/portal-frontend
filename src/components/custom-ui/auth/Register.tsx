@@ -16,9 +16,11 @@ import { signupWithEmailAndPassword } from "@/service/authservice";
 
 export function RegisterForm({
   onLogin,
+  onLoadingChange,
   ...props
 }: React.ComponentProps<"div"> & {
   onLogin?: () => void;
+  onLoadingChange?: (loading: boolean) => void;
 }) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -37,6 +39,8 @@ export function RegisterForm({
     }
 
     setLoading(true);
+    onLoadingChange?.(true); // Trigger full-screen loading
+    
     try {
       const { message } = await signupWithEmailAndPassword(email, password);
       alert(message);
@@ -46,12 +50,14 @@ export function RegisterForm({
       } else {
         router.push("/");
       }
+      // Loading screen will stay visible during navigation
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message || "An unexpected error occurred");
-    } finally {
       setLoading(false);
+      onLoadingChange?.(false); // Only hide loading on error
     }
+    // Removed finally block - loading stays visible on success
   };
 
 
@@ -80,6 +86,7 @@ export function RegisterForm({
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={loading}
           />
         </div>
       </div>
@@ -99,6 +106,7 @@ export function RegisterForm({
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={loading}
           />
         </div>
       </div>
@@ -118,6 +126,7 @@ export function RegisterForm({
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            disabled={loading}
           />
         </div>
       </div>
@@ -128,6 +137,7 @@ export function RegisterForm({
         <Button
           type="submit"
           className="w-full rounded-full bg-gradient-to-r from-green-400 via-green-600 to-green-800 text-white hover:opacity-90 transition-opacity"
+          disabled={loading}
         >
            {loading ? "Creating..." : "Create Account"}
         </Button>
