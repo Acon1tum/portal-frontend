@@ -18,7 +18,8 @@ export const login = async (email: string, password: string) => {
 
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || 'Login failed');
+    // throw new Error(data.error || 'Login failed');
+    console.log('Login failed:', data.error);
   }
 
   // Log the user data coming from the server session response
@@ -53,7 +54,7 @@ export const fetchUserProfile = async (): Promise<SessionUser | null> => {
     // First get the session to get the user ID
     const sessionUser = await checkSession();
     console.log('fetchUserProfile: Session user:', sessionUser);
-    
+
     if (!sessionUser || !sessionUser.id) {
       console.error('fetchUserProfile: No authenticated user found');
       return null;
@@ -81,7 +82,7 @@ export const fetchUserProfile = async (): Promise<SessionUser | null> => {
     console.log('fetchUserProfile: Complete user profile fetched:', userProfile);
     console.log('fetchUserProfile: Profile picture exists:', !!userProfile.profilePicture);
     console.log('fetchUserProfile: Cover photo exists:', !!userProfile.coverPhoto);
-    
+
     return userProfile as SessionUser;
   } catch (error) {
     console.error('fetchUserProfile: Failed to fetch user profile:', error);
@@ -156,7 +157,7 @@ export const resendOTP = async (userId: string) => {
 // Function to get and decode the JWT token manually from cookies (legacy - may not be needed with session auth)
 export const userAuth = () => {
   const token = Cookies.get('token');
-  
+
   if (!token) {
     throw new Error('Token not found');
   }
@@ -171,9 +172,9 @@ export const userAuth = () => {
   const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // Base64URL to Base64
   const decodedJson = atob(base64); // Decode the base64 string
   const decoded = JSON.parse(decodedJson); // Parse the JSON string to an object
-  
+
   return decoded; // Return the decoded token data
-};  
+};
 
 export const signupWithGoogle = (): void => {
   window.location.href = `${API_URL}/auth/signup-with-google`;

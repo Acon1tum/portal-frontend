@@ -10,6 +10,7 @@ import { Input } from "../../ui/input";
 import { Button } from "../../ui/button";
 import { UserRole, SessionUser } from "@/utils/types";
 import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
 
 export function LoginForm({
   onForgotPassword,
@@ -20,53 +21,61 @@ export function LoginForm({
 }) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
     onLoadingChange?.(true); // Trigger full-screen loading
 
     try {
       const result = await login(email, password);
       console.log("login result:", result);
-      
+
       if (result && result.user) {
         // Update auth context
         authLogin(result.user as SessionUser);
-        
+
         // Get the user's role from the session user
         const user = result.user as SessionUser;
         const roleName = user.role;
-        
+
         // Redirect based on role using the new UserRole enum
         if (roleName === UserRole.SUPERADMIN) {
           router.push("/admin");
-        } else if (roleName === UserRole.EXHIBITOR || roleName === UserRole.SPONSOR) {
+        } else if (
+          roleName === UserRole.EXHIBITOR ||
+          roleName === UserRole.SPONSOR
+        ) {
           router.push("/owner");
-        } else if (roleName === UserRole.JOBSEEKER || roleName === UserRole.MANNING_AGENCY) {
+        } else if (
+          roleName === UserRole.JOBSEEKER ||
+          roleName === UserRole.MANNING_AGENCY
+        ) {
           router.push("/dashboard");
         } else if (roleName === UserRole.VISITOR) {
           // Visitors might have limited access or need to complete profile
           router.push("/dashboard");
         } else {
           // For users with other roles or no role
-          setError("Your account doesn't have access to the system. Please contact an administrator.");
+          toast.error(
+            "Your account doesn't have access to the system. Please contact an administrator."
+          );
           setIsLoading(false);
           onLoadingChange?.(false); // Only hide loading on error
         }
       } else {
-        setError("Login successful but user data is missing. Please try again.");
+        toast.error("Access denied, insufficient permissions.");
         setIsLoading(false);
         onLoadingChange?.(false); // Only hide loading on error
       }
     } catch (err: Error | unknown) {
       console.error("Login error:", err);
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      toast.error(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
       setIsLoading(false);
       onLoadingChange?.(false); // Only hide loading on error
     }
@@ -128,7 +137,6 @@ export function LoginForm({
           />
         </div>
       </div>
-      {error && <div className="text-sm text-red-500 -mt-2">{error}</div>}
       <div className="flex justify-end items-center mt-2">
         <button
           type="button"
@@ -155,7 +163,6 @@ export function LoginForm({
         >
           Login with Google
         </Button>
-        
       </div>
     </form>
   );
