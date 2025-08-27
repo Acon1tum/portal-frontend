@@ -1,15 +1,48 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Filter, Eye, Heart, MessageCircle, Share2, MoreHorizontal, ThumbsUp, Bookmark, Paperclip, FileText, Download, Image as ImageIcon, Send } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Eye,
+  Heart,
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  ThumbsUp,
+  Bookmark,
+  Paperclip,
+  FileText,
+  Download,
+  Image as ImageIcon,
+  Send,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { usePostings } from "@/hooks/usePostings";
 import { PostType, PostingComment } from "@/utils/types";
 import Link from "next/link";
@@ -20,11 +53,17 @@ import { useAuth } from "@/lib/auth-context";
 // ImageWithFallback component
 interface ImageWithFallbackProps {
   attachment: { id: string; url?: string; fileName?: string };
-  getViewableImageUrl: (attachment: { id: string; url?: string }) => Promise<string>;
+  getViewableImageUrl: (attachment: {
+    id: string;
+    url?: string;
+  }) => Promise<string>;
 }
 
-function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbackProps) {
-  const [imageUrl, setImageUrl] = useState<string>('');
+function ImageWithFallback({
+  attachment,
+  getViewableImageUrl,
+}: ImageWithFallbackProps) {
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
@@ -32,7 +71,7 @@ function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbac
     const loadImage = async () => {
       setIsLoading(true);
       setHasError(false);
-      
+
       try {
         const url = await getViewableImageUrl(attachment);
         if (url) {
@@ -65,37 +104,52 @@ function ImageWithFallback({ attachment, getViewableImageUrl }: ImageWithFallbac
     return (
       <div className="flex items-center justify-center min-h-[200px] text-muted-foreground">
         <div className="text-center">
-          <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          <svg
+            className="w-8 h-8 mx-auto mb-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
           </svg>
-          <p className="text-sm font-medium">{attachment.fileName || 'Attachment'}</p>
-          <p className="text-xs opacity-75">Click &quot;View Full Post&quot; to download</p>
+          <p className="text-sm font-medium">
+            {attachment.fileName || "Attachment"}
+          </p>
+          <p className="text-xs opacity-75">
+            Click &quot;View Full Post&quot; to download
+          </p>
         </div>
       </div>
     );
   }
 
-  const isDataOrBlob = imageUrl.startsWith('data:') || imageUrl.startsWith('blob:');
+  const isDataOrBlob =
+    imageUrl.startsWith("data:") || imageUrl.startsWith("blob:");
 
   return (
-    <div className="relative w-full" style={{ maxHeight: '600px' }}>
+    <div className="relative w-full" style={{ maxHeight: "600px" }}>
       {isDataOrBlob ? (
         <img
           src={imageUrl}
-          alt={attachment.fileName || 'Post image'}
+          alt={attachment.fileName || "Post image"}
           className="w-full h-auto object-contain rounded-lg max-h-[600px]"
           loading="lazy"
         />
       ) : (
-      <Image
-        src={imageUrl}
-        alt={attachment.fileName || 'Post image'}
-        width={800}
-        height={600}
-        className="w-full h-auto object-contain rounded-lg max-h-[600px]"
-        sizes="(max-width: 768px) 100vw, 800px"
-        onError={() => setHasError(true)}
-      />
+        <Image
+          src={imageUrl}
+          alt={attachment.fileName || "Post image"}
+          width={800}
+          height={600}
+          className="w-full h-auto object-contain rounded-lg max-h-[600px]"
+          sizes="(max-width: 768px) 100vw, 800px"
+          onError={() => setHasError(true)}
+        />
       )}
     </div>
   );
@@ -106,13 +160,25 @@ export default function PostsPage() {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [expandedAttachmentsByPost, setExpandedAttachmentsByPost] = useState<Record<string, boolean>>({});
+  const [expandedAttachmentsByPost, setExpandedAttachmentsByPost] = useState<
+    Record<string, boolean>
+  >({});
   const ATTACHMENTS_PREVIEW_COUNT = 2;
-  const [expandedCommentsByPost, setExpandedCommentsByPost] = useState<Record<string, boolean>>({});
-  const [commentsByPost, setCommentsByPost] = useState<Record<string, PostingComment[]>>({});
-  const [loadingCommentsByPost, setLoadingCommentsByPost] = useState<Record<string, boolean>>({});
-  const [errorCommentsByPost, setErrorCommentsByPost] = useState<Record<string, string | undefined>>({});
-  const [commentsCountByPost, setCommentsCountByPost] = useState<Record<string, number>>({});
+  const [expandedCommentsByPost, setExpandedCommentsByPost] = useState<
+    Record<string, boolean>
+  >({});
+  const [commentsByPost, setCommentsByPost] = useState<
+    Record<string, PostingComment[]>
+  >({});
+  const [loadingCommentsByPost, setLoadingCommentsByPost] = useState<
+    Record<string, boolean>
+  >({});
+  const [errorCommentsByPost, setErrorCommentsByPost] = useState<
+    Record<string, string | undefined>
+  >({});
+  const [commentsCountByPost, setCommentsCountByPost] = useState<
+    Record<string, number>
+  >({});
   const [deleteCommentModal, setDeleteCommentModal] = useState<{
     isOpen: boolean;
     commentId: string;
@@ -120,9 +186,9 @@ export default function PostsPage() {
     commentContent: string;
   }>({
     isOpen: false,
-    commentId: '',
-    postingId: '',
-    commentContent: '',
+    commentId: "",
+    postingId: "",
+    commentContent: "",
   });
   const [editingComment, setEditingComment] = useState<{
     commentId: string;
@@ -138,7 +204,7 @@ export default function PostsPage() {
   useEffect(() => {
     const counts: Record<string, number> = {};
     for (const p of postings) {
-      counts[p.id] = p._count?.comments ?? (p.comments?.length ?? 0) ?? 0;
+      counts[p.id] = p._count?.comments ?? p.comments?.length ?? 0;
     }
     setCommentsCountByPost(counts);
   }, [postings]);
@@ -148,50 +214,68 @@ export default function PostsPage() {
     if (!postings || postings.length === 0) return;
     let isCancelled = false;
     const load = async () => {
-      await Promise.all(postings.map(async (p) => {
-        if (commentsByPost[p.id]) return;
-        try {
-          const list = await postingService.getComments(p.id);
-          if (isCancelled) return;
-          setCommentsByPost(prev => ({ ...prev, [p.id]: list }));
-          setCommentsCountByPost(prev => ({ ...prev, [p.id]: list.length }));
-        } catch (e) {
-          // ignore per-post fetch error here; UI handles on expand
-        }
-      }));
+      await Promise.all(
+        postings.map(async (p) => {
+          if (commentsByPost[p.id]) return;
+          try {
+            const list = await postingService.getComments(p.id);
+            if (isCancelled) return;
+            setCommentsByPost((prev) => ({ ...prev, [p.id]: list }));
+            setCommentsCountByPost((prev) => ({
+              ...prev,
+              [p.id]: list.length,
+            }));
+          } catch (e) {
+            // ignore per-post fetch error here; UI handles on expand
+          }
+        })
+      );
     };
     load();
-    return () => { isCancelled = true; };
+    return () => {
+      isCancelled = true;
+    };
   }, [postings]);
 
   // Only show published posts for viewing
-  const publishedPostings = postings.filter(posting => posting.isPublished);
+  const publishedPostings = postings.filter((posting) => posting.isPublished);
 
-  const filteredPostings = publishedPostings.filter(posting => {
-    const matchesSearch = posting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         posting.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === "all" || posting.postType === selectedType;
-    
+  const filteredPostings = publishedPostings.filter((posting) => {
+    const matchesSearch =
+      posting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      posting.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType =
+      selectedType === "all" || posting.postType === selectedType;
+
     return matchesSearch && matchesType;
   });
 
   const getPostTypeColor = (type: PostType) => {
     switch (type) {
-      case PostType.JOB_LISTING: return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
-      case PostType.ANNOUNCEMENT: return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
-      case PostType.NEWS: return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
-      case PostType.EVENT: return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300";
-      case PostType.PROMOTION: return "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300";
-      case PostType.GENERAL: return "bg-muted text-muted-foreground";
-      default: return "bg-muted text-muted-foreground";
+      case PostType.JOB_LISTING:
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
+      case PostType.ANNOUNCEMENT:
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
+      case PostType.NEWS:
+        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
+      case PostType.EVENT:
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300";
+      case PostType.PROMOTION:
+        return "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300";
+      case PostType.GENERAL:
+        return "bg-muted text-muted-foreground";
+      default:
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+    const diffInHours = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    );
+
     if (diffInHours < 1) {
       return "Just now";
     } else if (diffInHours < 24) {
@@ -199,10 +283,10 @@ export default function PostsPage() {
     } else if (diffInHours < 48) {
       return "Yesterday";
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
       });
     }
   };
@@ -210,27 +294,30 @@ export default function PostsPage() {
   const handleToggleComments = async (postId: string) => {
     const isOpen = !!expandedCommentsByPost[postId];
     if (!isOpen && !commentsByPost[postId] && !loadingCommentsByPost[postId]) {
-      setLoadingCommentsByPost(prev => ({ ...prev, [postId]: true }));
-      setErrorCommentsByPost(prev => ({ ...prev, [postId]: undefined }));
+      setLoadingCommentsByPost((prev) => ({ ...prev, [postId]: true }));
+      setErrorCommentsByPost((prev) => ({ ...prev, [postId]: undefined }));
       try {
         const comments = await postingService.getComments(postId);
-        setCommentsByPost(prev => ({ ...prev, [postId]: comments }));
-        setCommentsCountByPost(prev => ({ ...prev, [postId]: comments.length }));
+        setCommentsByPost((prev) => ({ ...prev, [postId]: comments }));
+        setCommentsCountByPost((prev) => ({
+          ...prev,
+          [postId]: comments.length,
+        }));
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Failed to load comments';
-        setErrorCommentsByPost(prev => ({ ...prev, [postId]: msg }));
+        const msg = e instanceof Error ? e.message : "Failed to load comments";
+        setErrorCommentsByPost((prev) => ({ ...prev, [postId]: msg }));
       } finally {
-        setLoadingCommentsByPost(prev => ({ ...prev, [postId]: false }));
+        setLoadingCommentsByPost((prev) => ({ ...prev, [postId]: false }));
       }
     }
-    setExpandedCommentsByPost(prev => ({ ...prev, [postId]: !isOpen }));
+    setExpandedCommentsByPost((prev) => ({ ...prev, [postId]: !isOpen }));
   };
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const diff = Date.now() - date.getTime();
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
+    if (mins < 1) return "just now";
     if (mins < 60) return `${mins}m ago`;
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours}h ago`;
@@ -240,35 +327,38 @@ export default function PostsPage() {
   };
 
   const isImageFile = (fileType: string) => {
-    return fileType.startsWith('image/');
+    return fileType.startsWith("image/");
   };
 
   // Function to get viewable image URL
-  const getViewableImageUrl = async (attachment: { id: string; url?: string }) => {
-    if (!attachment || !attachment.url) return '';
+  const getViewableImageUrl = async (attachment: {
+    id: string;
+    url?: string;
+  }) => {
+    if (!attachment || !attachment.url) return "";
 
     const url = attachment.url.trim();
-    
+
     // If it's already a data URL, use it directly
-    if (url.startsWith('data:')) {
+    if (url.startsWith("data:")) {
       return url;
     }
-    
+
     // If it's a regular URL, use it
-    if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
-    
+
     // If it's a blob URL, we can't use it (it's already been revoked or is invalid)
-    if (url.startsWith('blob:')) {
-      return '';
+    if (url.startsWith("blob:")) {
+      return "";
     }
-    
-    return '';
+
+    return "";
   };
 
   const formatSize = (size?: number) => {
-    if (!size || size <= 0) return '';
+    if (!size || size <= 0) return "";
     if (size < 1024) return `${size} B`;
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
     return `${(size / (1024 * 1024)).toFixed(1)} MB`;
@@ -308,41 +398,67 @@ export default function PostsPage() {
 
   const handleDeleteComment = async () => {
     if (!deleteCommentModal.isOpen) return;
-    
+
     try {
-      await postingService.deleteComment(deleteCommentModal.postingId, deleteCommentModal.commentId);
-      setCommentsByPost(prev => ({
+      await postingService.deleteComment(
+        deleteCommentModal.postingId,
+        deleteCommentModal.commentId
+      );
+      setCommentsByPost((prev) => ({
         ...prev,
-        [deleteCommentModal.postingId]: (prev[deleteCommentModal.postingId] || []).filter(x => x.id !== deleteCommentModal.commentId)
+        [deleteCommentModal.postingId]: (
+          prev[deleteCommentModal.postingId] || []
+        ).filter((x) => x.id !== deleteCommentModal.commentId),
       }));
-      setCommentsCountByPost(prev => ({
+      setCommentsCountByPost((prev) => ({
         ...prev,
-        [deleteCommentModal.postingId]: Math.max(0, (prev[deleteCommentModal.postingId] ?? 1) - 1),
+        [deleteCommentModal.postingId]: Math.max(
+          0,
+          (prev[deleteCommentModal.postingId] ?? 1) - 1
+        ),
       }));
-      setDeleteCommentModal({ isOpen: false, commentId: '', postingId: '', commentContent: '' });
+      setDeleteCommentModal({
+        isOpen: false,
+        commentId: "",
+        postingId: "",
+        commentContent: "",
+      });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete comment';
-      setErrorCommentsByPost(prev => ({ ...prev, [deleteCommentModal.postingId]: msg }));
-      setDeleteCommentModal({ isOpen: false, commentId: '', postingId: '', commentContent: '' });
+      const msg =
+        err instanceof Error ? err.message : "Failed to delete comment";
+      setErrorCommentsByPost((prev) => ({
+        ...prev,
+        [deleteCommentModal.postingId]: msg,
+      }));
+      setDeleteCommentModal({
+        isOpen: false,
+        commentId: "",
+        postingId: "",
+        commentContent: "",
+      });
     }
   };
 
-  const handleEditComment = async (commentId: string, postingId: string, newContent: string) => {
+  const handleEditComment = async (
+    commentId: string,
+    postingId: string,
+    newContent: string
+  ) => {
     if (!newContent.trim()) return;
-    
+
     try {
       // For now, we'll simulate editing by updating the local state
       // In a real app, you'd call an API endpoint to update the comment
-      setCommentsByPost(prev => ({
+      setCommentsByPost((prev) => ({
         ...prev,
-        [postingId]: prev[postingId].map(c => 
+        [postingId]: prev[postingId].map((c) =>
           c.id === commentId ? { ...c, content: newContent.trim() } : c
-        )
+        ),
       }));
       setEditingComment(null);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Failed to edit comment';
-      setErrorCommentsByPost(prev => ({ ...prev, [postingId]: msg }));
+      const msg = err instanceof Error ? err.message : "Failed to edit comment";
+      setErrorCommentsByPost((prev) => ({ ...prev, [postingId]: msg }));
     }
   };
 
@@ -352,7 +468,9 @@ export default function PostsPage() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Posts</h1>
-          <p className="text-muted-foreground">Browse and read published posts and announcements</p>
+          <p className="text-muted-foreground">
+            Browse and read published posts and announcements
+          </p>
         </div>
 
         {/* Filters */}
@@ -368,15 +486,19 @@ export default function PostsPage() {
                   className="pl-10"
                 />
               </div>
-              
+
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value={PostType.JOB_LISTING}>Job Listing</SelectItem>
-                  <SelectItem value={PostType.ANNOUNCEMENT}>Announcement</SelectItem>
+                  <SelectItem value={PostType.JOB_LISTING}>
+                    Job Listing
+                  </SelectItem>
+                  <SelectItem value={PostType.ANNOUNCEMENT}>
+                    Announcement
+                  </SelectItem>
                   <SelectItem value={PostType.NEWS}>News</SelectItem>
                   <SelectItem value={PostType.EVENT}>Event</SelectItem>
                   <SelectItem value={PostType.PROMOTION}>Promotion</SelectItem>
@@ -396,15 +518,25 @@ export default function PostsPage() {
         <div className="space-y-6 max-w-2xl mx-auto">
           {filteredPostings.map((posting) => {
             // Get first image attachment for preview
-            const imageAttachment = posting.attachments?.find(att => att.fileType && isImageFile(att.fileType));
-            const otherAttachments = (posting.attachments || []).filter(att => !imageAttachment || att.id !== imageAttachment.id);
+            const imageAttachment = posting.attachments?.find(
+              (att) => att.fileType && isImageFile(att.fileType)
+            );
+            const otherAttachments = (posting.attachments || []).filter(
+              (att) => !imageAttachment || att.id !== imageAttachment.id
+            );
             const isExpanded = !!expandedAttachmentsByPost[posting.id];
-            const attachmentsToRender = otherAttachments.length > 0
-              ? (isExpanded ? otherAttachments : otherAttachments.slice(0, ATTACHMENTS_PREVIEW_COUNT))
-              : [];
-            
+            const attachmentsToRender =
+              otherAttachments.length > 0
+                ? isExpanded
+                  ? otherAttachments
+                  : otherAttachments.slice(0, ATTACHMENTS_PREVIEW_COUNT)
+                : [];
+
             return (
-              <Card key={posting.id} className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
+              <Card
+                key={posting.id}
+                className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95"
+              >
                 <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
                 {/* Post Header */}
                 <CardHeader className="pb-3 pt-4">
@@ -412,13 +544,17 @@ export default function PostsPage() {
                     <Avatar className="w-11 h-11 ring-2 ring-border">
                       <AvatarImage src="/avatars/default.jpg" alt="User" />
                       <AvatarFallback>
-                        {posting.createdBy?.name?.charAt(0) || posting.organization?.name?.charAt(0) || "U"}
+                        {posting.createdBy?.name?.charAt(0) ||
+                          posting.organization?.name?.charAt(0) ||
+                          "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-foreground truncate">
-                          {posting.createdBy?.name || posting.organization?.name || "Unknown User"}
+                          {posting.createdBy?.name ||
+                            posting.organization?.name ||
+                            "Unknown User"}
                         </h3>
                         {posting.organization && (
                           <Badge variant="secondary" className="text-xs">
@@ -429,8 +565,12 @@ export default function PostsPage() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <span>{formatDate(posting.createdAt)}</span>
                         <span>•</span>
-                        <Badge className={`text-xs ${getPostTypeColor(posting.postType)}`}>
-                          {posting.postType.replace('_', ' ')}
+                        <Badge
+                          className={`text-xs ${getPostTypeColor(
+                            posting.postType
+                          )}`}
+                        >
+                          {posting.postType.replace("_", " ")}
                         </Badge>
                       </div>
                     </div>
@@ -447,10 +587,9 @@ export default function PostsPage() {
                       {posting.title}
                     </h2>
                     <div className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {posting.content && posting.content.length > 200 
-                        ? `${posting.content.substring(0, 200)}...` 
-                        : posting.content
-                      }
+                      {posting.content && posting.content.length > 200
+                        ? `${posting.content.substring(0, 200)}...`
+                        : posting.content}
                     </div>
                   </div>
                 </CardContent>
@@ -459,7 +598,7 @@ export default function PostsPage() {
                 {imageAttachment && (
                   <div className="px-6 pb-4">
                     <div className="relative w-full bg-muted/40 rounded-lg overflow-hidden ring-1 ring-border/50">
-                      <ImageWithFallback 
+                      <ImageWithFallback
                         attachment={imageAttachment}
                         getViewableImageUrl={getViewableImageUrl}
                       />
@@ -482,14 +621,24 @@ export default function PostsPage() {
                             <div className="flex items-center gap-3 min-w-0">
                               <ImageIcon className="w-5 h-5 text-blue-500" />
                               <div className="truncate">
-                                <p className="font-medium text-sm truncate">{imageAttachment.fileName || 'Image'}</p>
+                                <p className="font-medium text-sm truncate">
+                                  {imageAttachment.fileName || "Image"}
+                                </p>
                                 <p className="text-xs text-muted-foreground truncate">
-                                  {imageAttachment.fileType} {imageAttachment.size ? `• ${formatSize(imageAttachment.size)}` : ''}
+                                  {imageAttachment.fileType}{" "}
+                                  {imageAttachment.size
+                                    ? `• ${formatSize(imageAttachment.size)}`
+                                    : ""}
                                 </p>
                               </div>
                             </div>
                             <Button variant="outline" size="sm" asChild>
-                              <a href={imageAttachment.url} target="_blank" rel="noopener noreferrer" download={imageAttachment.fileName}>
+                              <a
+                                href={imageAttachment.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                download={imageAttachment.fileName}
+                              >
                                 <Download className="w-4 h-4 mr-2" /> Download
                               </a>
                             </Button>
@@ -497,8 +646,11 @@ export default function PostsPage() {
                         ) : null
                       ) : (
                         <>
-                          {attachmentsToRender.map(att => (
-                            <div key={att.id} className="flex items-center justify-between p-3 border border-border/60 rounded-lg hover:bg-muted/30 transition-colors">
+                          {attachmentsToRender.map((att) => (
+                            <div
+                              key={att.id}
+                              className="flex items-center justify-between p-3 border border-border/60 rounded-lg hover:bg-muted/30 transition-colors"
+                            >
                               <div className="flex items-center gap-3 min-w-0">
                                 {att.fileType && isImageFile(att.fileType) ? (
                                   <ImageIcon className="w-5 h-5 text-blue-500" />
@@ -506,33 +658,49 @@ export default function PostsPage() {
                                   <FileText className="w-5 h-5 text-gray-500" />
                                 )}
                                 <div className="truncate">
-                                  <p className="font-medium text-sm truncate">{att.fileName || 'Attachment'}</p>
+                                  <p className="font-medium text-sm truncate">
+                                    {att.fileName || "Attachment"}
+                                  </p>
                                   <p className="text-xs text-muted-foreground truncate">
-                                    {att.fileType} {att.size ? `• ${formatSize(att.size)}` : ''}
+                                    {att.fileType}{" "}
+                                    {att.size
+                                      ? `• ${formatSize(att.size)}`
+                                      : ""}
                                   </p>
                                 </div>
                               </div>
                               <Button variant="outline" size="sm" asChild>
-                                <a href={att.url} target="_blank" rel="noopener noreferrer" download={att.fileName}>
+                                <a
+                                  href={att.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download={att.fileName}
+                                >
                                   <Download className="w-4 h-4 mr-2" /> Download
                                 </a>
                               </Button>
                             </div>
                           ))}
-                          {otherAttachments.length > ATTACHMENTS_PREVIEW_COUNT && (
+                          {otherAttachments.length >
+                            ATTACHMENTS_PREVIEW_COUNT && (
                             <div className="pt-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="text-foreground/80 hover:text-foreground"
-                                onClick={() => setExpandedAttachmentsByPost(prev => ({
-                                  ...prev,
-                                  [posting.id]: !isExpanded,
-                                }))}
+                                onClick={() =>
+                                  setExpandedAttachmentsByPost((prev) => ({
+                                    ...prev,
+                                    [posting.id]: !isExpanded,
+                                  }))
+                                }
                               >
-                                {isExpanded 
-                                  ? 'See less' 
-                                  : `See more... (${otherAttachments.length - ATTACHMENTS_PREVIEW_COUNT} more)`}
+                                {isExpanded
+                                  ? "See less"
+                                  : `See more... (${
+                                      otherAttachments.length -
+                                      ATTACHMENTS_PREVIEW_COUNT
+                                    } more)`}
                               </Button>
                             </div>
                           )}
@@ -552,7 +720,9 @@ export default function PostsPage() {
                       <span>42 likes</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span>{commentsCountByPost[posting.id] ?? 0} comments</span>
+                      <span>
+                        {commentsCountByPost[posting.id] ?? 0} comments
+                      </span>
                       <span>3 shares</span>
                     </div>
                   </div>
@@ -561,16 +731,16 @@ export default function PostsPage() {
                 {/* Action Buttons */}
                 <div className="px-6 py-2 border-t border-border/60">
                   <div className="flex items-center justify-between">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                     >
                       <Heart className="w-5 h-5" />
                       <span className="font-medium">Like</span>
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                       onClick={() => handleToggleComments(posting.id)}
@@ -578,16 +748,16 @@ export default function PostsPage() {
                       <MessageCircle className="w-5 h-5" />
                       <span className="font-medium">Comment</span>
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                     >
                       <Share2 className="w-5 h-5" />
                       <span className="font-medium">Share</span>
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
                     >
@@ -598,159 +768,236 @@ export default function PostsPage() {
 
                 {/* View Post Button */}
                 {!expandedCommentsByPost[posting.id] && (
-                <div className="px-6 pb-4">
-                  <Link href={`/posts/view/${posting.id}`}>
-                      <Button variant="outline" className="w-full rounded-lg" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
-                      View Full Post
-                    </Button>
-                  </Link>
-                </div>
+                  <div className="px-6 pb-4">
+                    <Link href={`/posts/view/${posting.id}`}>
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-lg"
+                        size="sm"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Full Post
+                      </Button>
+                    </Link>
+                  </div>
                 )}
                 {expandedCommentsByPost[posting.id] && (
                   <div className="px-6 pt-2 pb-4 border-t border-border/50">
                     {loadingCommentsByPost[posting.id] && (
-                      <div className="text-sm text-muted-foreground">Loading comments...</div>
-                    )}
-                    {errorCommentsByPost[posting.id] && (
-                      <div className="text-sm text-destructive">{errorCommentsByPost[posting.id]}</div>
-                    )}
-                    {!loadingCommentsByPost[posting.id] && commentsByPost[posting.id] && (
-                      <div className="space-y-3">
-                        {commentsByPost[posting.id].length === 0 ? (
-                          <div className="text-sm text-muted-foreground">No comments yet.</div>
-                        ) : (
-                          commentsByPost[posting.id].map((c) => (
-                            <div key={c.id} className="flex items-start gap-3">
-                              <div className="w-8 h-8 rounded-full bg-muted/70 flex items-center justify-center text-xs font-medium ring-1 ring-border/60">
-                                {(c.user?.name || c.user?.email || 'U').charAt(0)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <span className="font-medium text-foreground truncate max-w-[200px]">{c.user?.name || c.user?.email || 'User'}</span>
-                                  <span className="text-muted-foreground">• {formatTimeAgo(c.createdAt)}</span>
-                                  {/* Comment actions */}
-                                  {(user && (user.id === c.userId || user.id === posting.createdBy?.id)) && (
-                                    <div className="ml-auto relative">
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <button
-                                            type="button"
-                                            className="p-1 rounded hover:bg-muted"
-                                            title="More"
-                                          >
-                                            <MoreHorizontal className="w-4 h-4" />
-                                          </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          {user.id === c.userId && (
-                                            <DropdownMenuItem
-                                              onClick={() => setEditingComment({
-                                                commentId: c.id,
-                                                postingId: posting.id,
-                                                content: c.content,
-                                              })}
-                                            >
-                                              Edit
-                                            </DropdownMenuItem>
-                                          )}
-                                          <DropdownMenuItem
-                                            onClick={() => setDeleteCommentModal({
-                                              isOpen: true,
-                                              commentId: c.id,
-                                              postingId: posting.id,
-                                              commentContent: c.content,
-                                            })}
-                                            className="text-destructive focus:text-destructive"
-                                          >
-                                            Delete
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
-                                    </div>
-                                  )}
-                                </div>
-                                {editingComment?.commentId === c.id ? (
-                                  <div className="mt-2 space-y-2">
-                                    <textarea
-                                      value={editingComment.content}
-                                      onChange={(e) => setEditingComment(prev => prev ? { ...prev, content: e.target.value } : null)}
-                                      className="w-full px-3 py-2 text-sm border rounded-lg bg-background resize-none"
-                                      rows={2}
-                                      autoFocus
-                                    />
-                                    <div className="flex gap-2">
-                                      <Button
-                                        size="sm"
-                                        onClick={() => handleEditComment(c.id, posting.id, editingComment.content)}
-                                      >
-                                        Save
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setEditingComment(null)}
-                                      >
-                                        Cancel
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="text-sm text-foreground/90 whitespace-pre-wrap bg-muted/30 inline-block px-3 py-2 rounded-2xl">
-                                    {c.content}
-                                  </div>
-                                )}
-                                <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                                  <button className="hover:underline" type="button">Like</button>
-                                  <button className="hover:underline" type="button">Reply</button>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                        {user ? (
-                        <form
-                          className="mt-3 flex items-center gap-2"
-                          onSubmit={async (e) => {
-                            e.preventDefault();
-                            const form = e.currentTarget as HTMLFormElement;
-                            const input = form.elements.namedItem('newComment') as HTMLInputElement;
-                            const content = input.value.trim();
-                            if (!content) return;
-                            try {
-                              const created = await postingService.createComment(posting.id, content);
-                              setCommentsByPost(prev => ({
-                                ...prev,
-                                [posting.id]: [...(prev[posting.id] || []), created],
-                              }));
-                              setCommentsCountByPost(prev => ({
-                                ...prev,
-                                [posting.id]: (prev[posting.id] ?? 0) + 1,
-                              }));
-                              input.value = '';
-                            } catch (err) {
-                              const msg = err instanceof Error ? err.message : 'Failed to add comment';
-                              setErrorCommentsByPost(prev => ({ ...prev, [posting.id]: msg }));
-                            }
-                          }}
-                        >
-                          <input
-                            type="text"
-                            name="newComment"
-                            placeholder="Write a comment..."
-                            className="flex-1 px-4 py-2 border rounded-full bg-muted/30 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-                          />
-                          <Button type="submit" size="sm" className="rounded-full h-8 w-8 p-0 flex items-center justify-center">
-                            <Send className="w-4 h-4" />
-                          </Button>
-                        </form>
-                        ) : (
-                          <div className="mt-3 text-sm text-muted-foreground">
-                            <Link href="/login" className="underline">Log in</Link> to comment.
-                          </div>
-                        )}
+                      <div className="text-sm text-muted-foreground">
+                        Loading comments...
                       </div>
                     )}
+                    {errorCommentsByPost[posting.id] && (
+                      <div className="text-sm text-destructive">
+                        {errorCommentsByPost[posting.id]}
+                      </div>
+                    )}
+                    {!loadingCommentsByPost[posting.id] &&
+                      commentsByPost[posting.id] && (
+                        <div className="space-y-3">
+                          {commentsByPost[posting.id].length === 0 ? (
+                            <div className="text-sm text-muted-foreground">
+                              No comments yet.
+                            </div>
+                          ) : (
+                            commentsByPost[posting.id].map((c) => (
+                              <div
+                                key={c.id}
+                                className="flex items-start gap-3"
+                              >
+                                <div className="w-8 h-8 rounded-full bg-muted/70 flex items-center justify-center text-xs font-medium ring-1 ring-border/60">
+                                  {(
+                                    c.user?.name ||
+                                    c.user?.email ||
+                                    "U"
+                                  ).charAt(0)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <span className="font-medium text-foreground truncate max-w-[200px]">
+                                      {c.user?.name || c.user?.email || "User"}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      • {formatTimeAgo(c.createdAt)}
+                                    </span>
+                                    {/* Comment actions */}
+                                    {user &&
+                                      (user.id === c.userId ||
+                                        user.id === posting.createdBy?.id) && (
+                                        <div className="ml-auto relative">
+                                          <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                              <button
+                                                type="button"
+                                                className="p-1 rounded hover:bg-muted"
+                                                title="More"
+                                              >
+                                                <MoreHorizontal className="w-4 h-4" />
+                                              </button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                              {user.id === c.userId && (
+                                                <DropdownMenuItem
+                                                  onClick={() =>
+                                                    setEditingComment({
+                                                      commentId: c.id,
+                                                      postingId: posting.id,
+                                                      content: c.content,
+                                                    })
+                                                  }
+                                                >
+                                                  Edit
+                                                </DropdownMenuItem>
+                                              )}
+                                              <DropdownMenuItem
+                                                onClick={() =>
+                                                  setDeleteCommentModal({
+                                                    isOpen: true,
+                                                    commentId: c.id,
+                                                    postingId: posting.id,
+                                                    commentContent: c.content,
+                                                  })
+                                                }
+                                                className="text-destructive focus:text-destructive"
+                                              >
+                                                Delete
+                                              </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                          </DropdownMenu>
+                                        </div>
+                                      )}
+                                  </div>
+                                  {editingComment?.commentId === c.id ? (
+                                    <div className="mt-2 space-y-2">
+                                      <textarea
+                                        value={editingComment.content}
+                                        onChange={(e) =>
+                                          setEditingComment((prev) =>
+                                            prev
+                                              ? {
+                                                  ...prev,
+                                                  content: e.target.value,
+                                                }
+                                              : null
+                                          )
+                                        }
+                                        className="w-full px-3 py-2 text-sm border rounded-lg bg-background resize-none"
+                                        rows={2}
+                                        autoFocus
+                                      />
+                                      <div className="flex gap-2">
+                                        <Button
+                                          size="sm"
+                                          onClick={() =>
+                                            handleEditComment(
+                                              c.id,
+                                              posting.id,
+                                              editingComment.content
+                                            )
+                                          }
+                                        >
+                                          Save
+                                        </Button>
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() =>
+                                            setEditingComment(null)
+                                          }
+                                        >
+                                          Cancel
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-foreground/90 whitespace-pre-wrap bg-muted/30 inline-block px-3 py-2 rounded-2xl">
+                                      {c.content}
+                                    </div>
+                                  )}
+                                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                                    <button
+                                      className="hover:underline"
+                                      type="button"
+                                    >
+                                      Like
+                                    </button>
+                                    <button
+                                      className="hover:underline"
+                                      type="button"
+                                    >
+                                      Reply
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                          {user ? (
+                            <form
+                              className="mt-3 flex items-center gap-2"
+                              onSubmit={async (e) => {
+                                e.preventDefault();
+                                const form = e.currentTarget as HTMLFormElement;
+                                const input = form.elements.namedItem(
+                                  "newComment"
+                                ) as HTMLInputElement;
+                                const content = input.value.trim();
+                                if (!content) return;
+                                try {
+                                  const created =
+                                    await postingService.createComment(
+                                      posting.id,
+                                      content
+                                    );
+                                  setCommentsByPost((prev) => ({
+                                    ...prev,
+                                    [posting.id]: [
+                                      ...(prev[posting.id] || []),
+                                      created,
+                                    ],
+                                  }));
+                                  setCommentsCountByPost((prev) => ({
+                                    ...prev,
+                                    [posting.id]: (prev[posting.id] ?? 0) + 1,
+                                  }));
+                                  input.value = "";
+                                } catch (err) {
+                                  const msg =
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Failed to add comment";
+                                  setErrorCommentsByPost((prev) => ({
+                                    ...prev,
+                                    [posting.id]: msg,
+                                  }));
+                                }
+                              }}
+                            >
+                              <input
+                                type="text"
+                                name="newComment"
+                                placeholder="Write a comment..."
+                                className="flex-1 px-4 py-2 border rounded-full bg-muted/30 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                              />
+                              <Button
+                                type="submit"
+                                size="sm"
+                                className="rounded-full h-8 w-8 p-0 flex items-center justify-center"
+                              >
+                                <Send className="w-4 h-4" />
+                              </Button>
+                            </form>
+                          ) : (
+                            <div className="mt-3 text-sm text-muted-foreground">
+                              <Link href="/" className="underline">
+                                Log in
+                              </Link>{" "}
+                              to comment.
+                            </div>
+                          )}
+                        </div>
+                      )}
                   </div>
                 )}
               </Card>
@@ -760,41 +1007,58 @@ export default function PostsPage() {
 
         {filteredPostings.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">No published posts found</p>
+            <p className="text-muted-foreground mb-4">
+              No published posts found
+            </p>
           </div>
         )}
       </div>
 
       {/* Delete Comment Modal */}
-      <Dialog open={deleteCommentModal.isOpen} onOpenChange={(open) => {
-        if (!open) {
-          setDeleteCommentModal({ isOpen: false, commentId: '', postingId: '', commentContent: '' });
-        }
-      }}>
+      <Dialog
+        open={deleteCommentModal.isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteCommentModal({
+              isOpen: false,
+              commentId: "",
+              postingId: "",
+              commentContent: "",
+            });
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Comment</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this comment? This action cannot be undone.
+              Are you sure you want to delete this comment? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="bg-muted p-3 rounded-lg">
               <p className="text-sm text-muted-foreground">Comment:</p>
-              <p className="text-sm mt-1">{deleteCommentModal.commentContent}</p>
+              <p className="text-sm mt-1">
+                {deleteCommentModal.commentContent}
+              </p>
             </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setDeleteCommentModal({ isOpen: false, commentId: '', postingId: '', commentContent: '' })}
+              onClick={() =>
+                setDeleteCommentModal({
+                  isOpen: false,
+                  commentId: "",
+                  postingId: "",
+                  commentContent: "",
+                })
+              }
             >
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteComment}
-            >
+            <Button variant="destructive" onClick={handleDeleteComment}>
               Delete Comment
             </Button>
           </DialogFooter>
@@ -802,4 +1066,4 @@ export default function PostsPage() {
       </Dialog>
     </div>
   );
-} 
+}
