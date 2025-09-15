@@ -1,14 +1,24 @@
 "use client";
 
-import { ReactNode } from "react";
-import { Provider } from "react-redux";
-import { store } from "@/lib/store";
-import { SidebarWrapper } from "@/components/custom-ui/sidebar/sidebar-main";
+import { useAuth } from "@/lib/auth-context";
+import { UserRole } from "@/utils/types";
+import { RoleBasedHeader } from "@/components/custom-ui/header/role-based-header";
 
-export default function PostsLayout({ children }: { children: ReactNode }) {
+export default function PostsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user } = useAuth();
+
   return (
-    <Provider store={store}>
-      <SidebarWrapper>{children}</SidebarWrapper>
-    </Provider>
+    <>
+      {user?.role !== UserRole.CORPORATE_PROFESSIONAL && <RoleBasedHeader />}
+      <div>
+        {" "}
+        {/* Add padding to account for fixed header */}
+        {children}
+      </div>
+    </>
   );
-} 
+}

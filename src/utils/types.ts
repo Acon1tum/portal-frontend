@@ -33,6 +33,7 @@ export enum UserRole {
   SUPERADMIN = "SUPERADMIN",
   EXHIBITOR = "EXHIBITOR",
   SPONSOR = "SPONSOR",
+  CORPORATE_PROFESSIONAL = "CORPORATE_PROFESSIONAL",
 }
 
 // Updated to match backend UserType enum

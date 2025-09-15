@@ -50,21 +50,10 @@ export function LoginForm({
           roleName === UserRole.SPONSOR
         ) {
           router.push("/owner");
-        } else if (
-          roleName === UserRole.JOBSEEKER ||
-          roleName === UserRole.MANNING_AGENCY
-        ) {
-          router.push("/dashboard");
-        } else if (roleName === UserRole.VISITOR) {
-          // Visitors might have limited access or need to complete profile
+        } else if (roleName === UserRole.CORPORATE_PROFESSIONAL) {
           router.push("/dashboard");
         } else {
-          // For users with other roles or no role
-          toast.error(
-            "Your account doesn't have access to the system. Please contact an administrator."
-          );
-          setIsLoading(false);
-          onLoadingChange?.(false); // Only hide loading on error
+          router.push("/posts");
         }
       } else {
         toast.error("Access denied, insufficient permissions.");

@@ -25,6 +25,14 @@ export enum PermissionName {
   REPORTS_VIEW = "REPORTS_VIEW",
   REPORTS_EXPORT = "REPORTS_EXPORT",
   SETTINGS_MANAGE = "SETTINGS_MANAGE",
+
+  // Post and Comment Permissions
+  POST_CREATE = "POST_CREATE",
+  POST_EDIT = "POST_EDIT",
+  POST_DELETE = "POST_DELETE",
+  POST_VIEW = "POST_VIEW",
+  COMMENT_CREATE = "COMMENT_CREATE",
+  COMMENT_REPLY = "COMMENT_REPLY",
 }
 
 export const permissionGroups: Record<string, PermissionName[]> = {
@@ -54,5 +62,13 @@ export const permissionGroups: Record<string, PermissionName[]> = {
     PermissionName.REPORTS_VIEW,
     PermissionName.REPORTS_EXPORT,
     PermissionName.SETTINGS_MANAGE,
+  ],
+  "Post and Comment Permissions": [
+    PermissionName.POST_CREATE,
+    PermissionName.POST_EDIT,
+    PermissionName.POST_DELETE,
+    PermissionName.POST_VIEW,
+    PermissionName.COMMENT_CREATE,
+    PermissionName.COMMENT_REPLY,
   ],
 };

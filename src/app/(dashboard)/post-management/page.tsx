@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePostings } from "@/hooks/usePostings";
 import { useAuth } from "@/lib/auth-context";
-import { PostType, UserRole } from "@/utils/types";
+import { PostType, UserRole, PermissionName } from "@/utils/types";
 import Link from "next/link";
 
 export default function PostManagementPage() {
@@ -23,19 +23,25 @@ export default function PostManagementPage() {
     fetchPostings();
   }, [fetchPostings]);
 
+  const hasPermission = (permission: PermissionName) => {
+    // In a real app, this would check against user's roles and permissions from the backend
+    if (user?.role === UserRole.CORPORATE_PROFESSIONAL) {
+      return [
+        PermissionName.POST_CREATE,
+        PermissionName.POST_EDIT,
+        PermissionName.POST_DELETE,
+        PermissionName.POST_VIEW,
+      ].includes(permission);
+    }
+    return permission === PermissionName.POST_VIEW;
+  };
+
   // Filter posts based on user role
   const getFilteredPostings = () => {
-    let filtered = postings;
-
-    // If user is not superadmin, only show their own posts
-    if (user?.role !== UserRole.SUPERADMIN) {
-      filtered = postings.filter(posting => 
-        posting.createdBy?.id === user?.id || 
-        posting.createdBy?.email === user?.email
-      );
+    if (hasPermission(PermissionName.POST_VIEW)) {
+      return postings;
     }
-
-    return filtered;
+    return [];
   };
 
   const filteredPostings = getFilteredPostings().filter(posting => {
@@ -130,18 +136,17 @@ export default function PostManagementPage() {
         <div>
           <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Post Management</h1>
           <p className="text-muted-foreground mt-1">
-            {user?.role === UserRole.SUPERADMIN 
-              ? "Manage your organization's posts and announcements" 
-              : "Manage your posts and announcements"
-            }
+            Manage your posts and announcements
           </p>
         </div>
-        <Link href="/post-management/create">
-          <Button className="rounded-lg hover:bg-primary/90">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Post
-          </Button>
-        </Link>
+        {hasPermission(PermissionName.POST_CREATE) && (
+          <Link href="/post-management/create">
+            <Button className="rounded-lg hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Post
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Filters */}
@@ -289,11 +294,13 @@ export default function PostManagementPage() {
                       </Button>
                     </Link>
                   )}
-                  <Link href={`/post-management/edit/${posting.id}`}>
-                    <Button variant="outline" size="sm" title="Edit" className="rounded-lg hover:bg-muted/50">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  </Link>
+                  {hasPermission(PermissionName.POST_EDIT) && (
+                    <Link href={`/post-management/edit/${posting.id}`}>
+                      <Button variant="outline" size="sm" title="Edit" className="rounded-lg hover:bg-muted/50">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  )}
                 </div>
                 
                 <div className="flex gap-2">
@@ -309,14 +316,16 @@ export default function PostManagementPage() {
                       <Eye className="w-4 h-4" />
                     )}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => handleDelete(posting.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {hasPermission(PermissionName.POST_DELETE) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDelete(posting.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -327,20 +336,16 @@ export default function PostManagementPage() {
       {filteredPostings.length === 0 && (
         <div className="text-center py-16">
           <p className="text-muted-foreground mb-6 text-lg">
-            {user?.role === UserRole.SUPERADMIN 
-              ? "No posts found" 
-              : "No posts found. Create your first post to get started."
-            }
+            No posts found. Create your first post to get started.
           </p>
-          <Link href="/post-management/create">
-            <Button className="rounded-lg hover:bg-primary/90">
-              <Plus className="w-4 h-4 mr-2" />
-              {user?.role === UserRole.SUPERADMIN 
-                ? "Create Your First Post" 
-                : "Create Post"
-              }
-            </Button>
-          </Link>
+          {hasPermission(PermissionName.POST_CREATE) && (
+            <Link href="/post-management/create">
+              <Button className="rounded-lg hover:bg-primary/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Post
+              </Button>
+            </Link>
+          )}
         </div>
       )}
       </div>

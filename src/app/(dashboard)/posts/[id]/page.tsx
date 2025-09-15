@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { postingService } from "@/service/postingService";
 import { useAuth } from "@/lib/auth-context";
-import { Posting, PostType } from "@/utils/types";
+import { Posting, PostType, UserRole, PermissionName } from "@/utils/types";
 import Link from "next/link";
 import Image from "next/image";
+import { CommentSection } from "@/components/custom-ui/comments/CommentSection";
 
 export default function ViewPostPage() {
   const params = useParams();
@@ -22,17 +23,16 @@ export default function ViewPostPage() {
 
   const postId = params.id as string;
 
-  // Check if current user is the post owner
-  const isPostOwner = user && posting && (
-    user.id === posting.createdById || 
-    user.email === posting.createdBy?.email
-  );
-
-  // Check if user is admin (can manage all posts)
-  const isAdmin = user?.role === 'SUPERADMIN';
-
-  // Check if user can edit this post
-  const canEditPost = isPostOwner || isAdmin;
+  const hasPermission = (permission: PermissionName) => {
+    // In a real app, this would check against user's roles and permissions from the backend
+    if (user?.role === UserRole.CORPORATE_PROFESSIONAL) {
+      return [
+        PermissionName.POST_EDIT,
+        PermissionName.POST_DELETE,
+      ].includes(permission);
+    }
+    return false;
+  };
 
   // Helper function to check if file is an image
   const isImageFile = (fileType: string) => {
@@ -173,7 +173,7 @@ export default function ViewPostPage() {
         </div>
 
         <div className="flex gap-3">
-          {canEditPost && (
+          {hasPermission(PermissionName.POST_EDIT) && (
             <>
               <Link href={`/posts/edit/${posting.id}`}>
                 <Button variant="outline" className="rounded-lg hover:bg-muted/50">
@@ -333,6 +333,7 @@ export default function ViewPostPage() {
               </CardContent>
             </Card>
           )}
+          <CommentSection />
         </div>
 
         {/* Sidebar */}
@@ -387,7 +388,7 @@ export default function ViewPostPage() {
           </Card>
 
           {/* Quick Actions */}
-          {canEditPost && (
+          {hasPermission(PermissionName.POST_EDIT) && (
             <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
               <div className="h-1 bg-gradient-to-r from-orange-500/70 via-red-500/60 to-pink-500/60 rounded-t-xl" />
               <CardHeader className="pt-6">
@@ -420,14 +421,16 @@ export default function ViewPostPage() {
                 </Link>
 
                 <div className="pt-2">
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={handleDelete}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete Post
-                  </Button>
+                  {hasPermission(PermissionName.POST_DELETE) && (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={handleDelete}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Post
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

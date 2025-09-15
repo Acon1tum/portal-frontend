@@ -16,6 +16,8 @@ import {
   Download,
   Image as ImageIcon,
   Send,
+  RefreshCcw,
+  ChevronUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +46,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePostings } from "@/hooks/usePostings";
-import { PostType, PostingComment } from "@/utils/types";
+import { PostType, PostingComment, UserRole } from "@/utils/types";
 import Link from "next/link";
 import Image from "next/image";
 import { postingService } from "@/service/postingService";
@@ -121,7 +123,7 @@ function ImageWithFallback({
             {attachment.fileName || "Attachment"}
           </p>
           <p className="text-xs opacity-75">
-            Click &quot;View Full Post&quot; to download
+            Click "View Full Post" to download
           </p>
         </div>
       </div>
@@ -195,10 +197,21 @@ export default function PostsPage() {
     postingId: string;
     content: string;
   } | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     fetchPostings();
   }, [fetchPostings]);
+
+  // Scroll to top listener
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Initialize comments count map from fetched postings
   useEffect(() => {
@@ -462,60 +475,73 @@ export default function PostsPage() {
     }
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-background w-full">
-      <div className="w-full px-4 py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Posts</h1>
-          <p className="text-muted-foreground">
-            Browse and read published posts and announcements
-          </p>
+    <div className="min-h-screen bg-background w-full md:max-w-[80dvw] max-w-[90dvw] mx-auto">
+      {/* Render header for non-CORPORATE_PROFESSIONAL users */}
+      <div className="w-full py-6">
+        <div className="w-full flex md:flex-row flex-col justify-between items-start gap-4">
+          {/* Header */}
+          <div className="flex flex-col ">
+            <h1 className="text-2xl font-bold text-foreground">Posts</h1>
+            <p className="text-muted-foreground">
+              Browse and read published posts and announcements
+            </p>
+          </div>
+
+          {/* Filters */}
+          <Card className="p-0 border-none shadow-none md:w-fit w-full">
+            <CardContent className="p-0">
+              <div className="flex flex-col sm:flex-row gap-4 md:w-fit w-full">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search posts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-full md:w-fit"
+                  />
+                </div>
+
+                <div className="flex flex-row gap-2">
+                  <Select value={selectedType} onValueChange={setSelectedType}>
+                    <SelectTrigger className="md:w-fit w-full">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value={PostType.JOB_LISTING}>
+                        Job Listing
+                      </SelectItem>
+                      <SelectItem value={PostType.ANNOUNCEMENT}>
+                        Announcement
+                      </SelectItem>
+                      <SelectItem value={PostType.NEWS}>News</SelectItem>
+                      <SelectItem value={PostType.EVENT}>Event</SelectItem>
+                      <SelectItem value={PostType.PROMOTION}>
+                        Promotion
+                      </SelectItem>
+                      <SelectItem value={PostType.GENERAL}>General</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Button variant="outline" onClick={fetchPostings}>
+                    <RefreshCcw className="w-4 h-4 mr-2" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6 border-0 shadow-sm">
-          <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search posts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value={PostType.JOB_LISTING}>
-                    Job Listing
-                  </SelectItem>
-                  <SelectItem value={PostType.ANNOUNCEMENT}>
-                    Announcement
-                  </SelectItem>
-                  <SelectItem value={PostType.NEWS}>News</SelectItem>
-                  <SelectItem value={PostType.EVENT}>Event</SelectItem>
-                  <SelectItem value={PostType.PROMOTION}>Promotion</SelectItem>
-                  <SelectItem value={PostType.GENERAL}>General</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" onClick={fetchPostings}>
-                <Filter className="w-4 h-4 mr-2" />
-                Refresh
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Posts Feed - Single Column */}
-        <div className="space-y-6 max-w-2xl mx-auto">
+        <div className="space-y-6 max-w-2xl mx-auto pt-6">
           {filteredPostings.map((posting) => {
             // Get first image attachment for preview
             const imageAttachment = posting.attachments?.find(
@@ -535,11 +561,11 @@ export default function PostsPage() {
             return (
               <Card
                 key={posting.id}
-                className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95"
+                className="rounded-md border overflow-hidden pt-0 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95"
               >
                 <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
                 {/* Post Header */}
-                <CardHeader className="pb-3 pt-4">
+                <CardHeader className="p-4">
                   <div className="flex items-start gap-3">
                     <Avatar className="w-11 h-11 ring-2 ring-border">
                       <AvatarImage src="/avatars/default.jpg" alt="User" />
@@ -549,20 +575,22 @@ export default function PostsPage() {
                           "U"}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-foreground truncate">
-                          {posting.createdBy?.name ||
-                            posting.organization?.name ||
-                            "Unknown User"}
-                        </h3>
-                        {posting.organization && (
-                          <Badge variant="secondary" className="text-xs">
-                            {posting.organization.name}
-                          </Badge>
-                        )}
+                    <div className="flex flex-col w-full gap-2">
+                      <div className="flex-1 min-w-0 ">
+                        <div className="flex md:flex-row flex-col md:items-center items-start">
+                          <h3 className="font-semibold text-foreground truncate">
+                            {posting.createdBy?.name ||
+                              posting.organization?.name ||
+                              "Unknown User"}
+                          </h3>
+                          {posting.organization && (
+                            <Badge variant="secondary" className="text-xs">
+                              {posting.organization.name}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex flex-row md:items-center items-start gap-2 text-sm text-muted-foreground">
                         <span>{formatDate(posting.createdAt)}</span>
                         <span>•</span>
                         <Badge
@@ -574,6 +602,7 @@ export default function PostsPage() {
                         </Badge>
                       </div>
                     </div>
+
                     <Button variant="ghost" size="sm" className="p-2">
                       <MoreHorizontal className="w-4 h-4" />
                     </Button>
@@ -1064,6 +1093,17 @@ export default function PostsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Scroll to Top Button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 bg-primary text-primary-foreground p-3 rounded-full shadow-lg hover:bg-primary/90 transition-all duration-200 z-50"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </button>
+      )}
     </div>
   );
 }
