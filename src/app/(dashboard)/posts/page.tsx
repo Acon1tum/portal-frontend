@@ -17,7 +17,13 @@ import {
   Image as ImageIcon,
   Send,
   RefreshCcw,
-  ChevronUp
+  ChevronUp,
+  LayoutDashboard,
+  Newspaper,
+  User,
+  LogOut,
+  Moon,
+  Sun
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +57,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { postingService } from "@/service/postingService";
 import { useAuth } from "@/lib/auth-context";
+import { useTheme } from "next-themes";
 
 // ImageWithFallback component
 interface ImageWithFallbackProps {
@@ -159,7 +166,8 @@ function ImageWithFallback({
 
 export default function PostsPage() {
   const { postings, loading, error, fetchPostings } = usePostings();
-  const { user } = useAuth();
+  const { user, logoutUser } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [expandedAttachmentsByPost, setExpandedAttachmentsByPost] = useState<
@@ -266,19 +274,19 @@ export default function PostsPage() {
   const getPostTypeColor = (type: PostType) => {
     switch (type) {
       case PostType.JOB_LISTING:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300";
+        return "bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-400 border border-blue-500/30";
       case PostType.ANNOUNCEMENT:
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300";
+        return "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400 border border-yellow-500/30";
       case PostType.NEWS:
-        return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300";
+        return "bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border border-green-500/30";
       case PostType.EVENT:
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300";
+        return "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 border border-purple-500/30";
       case PostType.PROMOTION:
-        return "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300";
+        return "bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-400 border border-pink-500/30";
       case PostType.GENERAL:
-        return "bg-muted text-muted-foreground";
+        return "bg-gradient-to-r from-gray-500/20 to-slate-500/20 text-gray-400 border border-gray-500/30";
       default:
-        return "bg-muted text-muted-foreground";
+        return "bg-gradient-to-r from-gray-500/20 to-slate-500/20 text-gray-400 border border-gray-500/30";
     }
   };
 
@@ -483,65 +491,186 @@ export default function PostsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background w-full md:max-w-[80dvw] max-w-[90dvw] mx-auto">
-      {/* Render header for non-CORPORATE_PROFESSIONAL users */}
-      <div className="w-full py-6">
-        <div className="w-full flex md:flex-row flex-col justify-between items-start gap-4">
-          {/* Header */}
-          <div className="flex flex-col ">
-            <h1 className="text-2xl font-bold text-foreground">Posts</h1>
-            <p className="text-muted-foreground">
-              Browse and read published posts and announcements
-            </p>
-          </div>
-
-          {/* Filters */}
-          <Card className="p-0 border-none shadow-none md:w-fit w-full">
-            <CardContent className="p-0">
-              <div className="flex flex-col sm:flex-row gap-4 md:w-fit w-full">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search posts..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-full md:w-fit"
-                  />
-                </div>
-
-                <div className="flex flex-row gap-2">
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger className="md:w-fit w-full">
-                      <SelectValue placeholder="All Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value={PostType.JOB_LISTING}>
-                        Job Listing
-                      </SelectItem>
-                      <SelectItem value={PostType.ANNOUNCEMENT}>
-                        Announcement
-                      </SelectItem>
-                      <SelectItem value={PostType.NEWS}>News</SelectItem>
-                      <SelectItem value={PostType.EVENT}>Event</SelectItem>
-                      <SelectItem value={PostType.PROMOTION}>
-                        Promotion
-                      </SelectItem>
-                      <SelectItem value={PostType.GENERAL}>General</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Button variant="outline" onClick={fetchPostings}>
-                    <RefreshCcw className="w-4 h-4 mr-2" />
-                  </Button>
-                </div>
+    <div className="min-h-screen bg-background w-full">
+      <div className="flex">
+        {/* Left Sidebar - User Menu - Fixed Position */}
+        <div className="w-80 bg-card border-r border-border fixed left-0 top-16 bottom-0 p-8 overflow-y-auto z-10 hidden lg:block">
+          <div className="space-y-8">
+            {/* User Profile Section */}
+            <div className="flex items-center gap-4 pb-6 border-b border-border/50">
+              <Avatar className="w-14 h-14 ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
+                <AvatarImage
+                  src={user?.profilePicture || "/avatars/default.jpg"}
+                  alt={user?.name || "User"}
+                />
+                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/40 text-primary font-semibold text-lg">
+                  {user?.name?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-foreground truncate text-base">
+                  {user?.name || "User"}
+                </h3>
+                <p className="text-sm text-muted-foreground truncate mt-0.5">
+                  {user?.email}
+                </p>
+                {user?.role && (
+                  <Badge className="mt-2 text-xs bg-primary/10 text-primary border-primary/20 px-2 py-1">
+                    {user.role.replace("_", " ")}
+                  </Badge>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            {/* Navigation Menu */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Navigation
+              </h4>
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-11 px-3 hover:bg-primary/10 hover:text-primary transition-all duration-200 rounded-lg"
+                  onClick={() => window.location.href = "/dashboard"}
+                >
+                  <LayoutDashboard className="w-5 h-5 mr-3" />
+                  <span className="font-medium">Dashboard</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-11 px-3 bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 rounded-lg"
+                  onClick={() => window.location.href = "/posts"}
+                >
+                  <Newspaper className="w-5 h-5 mr-3" />
+                  <span className="font-medium">Posts</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-11 px-3 hover:bg-primary/10 hover:text-primary transition-all duration-200 rounded-lg"
+                  onClick={() => window.location.href = "/profile"}
+                >
+                  <User className="w-5 h-5 mr-3" />
+                  <span className="font-medium">Profile</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* User Actions */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Account
+              </h4>
+              <div className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-11 px-3 hover:bg-muted/50 transition-all duration-200 rounded-lg"
+                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                >
+                  {theme === "light" ? (
+                    <Moon className="w-5 h-5 mr-3" />
+                  ) : (
+                    <Sun className="w-5 h-5 mr-3" />
+                  )}
+                  <span className="font-medium">Toggle Theme</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start h-11 px-3 text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200 rounded-lg"
+                  onClick={async () => {
+                    try {
+                      await logoutUser();
+                      window.location.href = "/";
+                    } catch (err) {
+                      console.error("Logout error:", err);
+                      alert("Failed to logout. Please try again.");
+                    }
+                  }}
+                >
+                  <LogOut className="w-5 h-5 mr-3" />
+                  <span className="font-medium">Log out</span>
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Posts Feed - Single Column */}
-        <div className="space-y-6 max-w-2xl mx-auto pt-6">
+        {/* Right Side - Posts Content */}
+        <div className="flex-1 lg:ml-80 pt-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="w-full flex md:flex-row flex-col justify-between items-start gap-6 mb-8">
+              {/* Header */}
+              <div className="flex flex-col">
+                <div className="flex items-center gap-4">
+                  <h1 className="text-3xl font-bold text-foreground tracking-tight">Posts</h1>
+                  {/* Mobile Menu Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="lg:hidden p-2 hover:bg-muted/50 transition-colors"
+                    onClick={() => {
+                      // You can add mobile menu toggle functionality here
+                      console.log("Mobile menu toggle");
+                    }}
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </Button>
+                </div>
+                <p className="text-muted-foreground mt-2 text-base">
+                  Browse and read published posts and announcements
+                </p>
+              </div>
+
+              {/* Filters */}
+              <Card className="p-0 border-none shadow-none md:w-fit w-full">
+                <CardContent className="p-0">
+                  <div className="flex flex-col sm:flex-row gap-4 md:w-fit w-full">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search posts..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-11 h-11 w-full md:w-80 rounded-xl border-border/50 focus:border-primary/50 transition-colors"
+                      />
+                    </div>
+
+                    <div className="flex flex-row gap-3">
+                      <Select value={selectedType} onValueChange={setSelectedType}>
+                        <SelectTrigger className="md:w-40 w-full h-11 rounded-xl border-border/50 focus:border-primary/50 transition-colors">
+                          <SelectValue placeholder="All Types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Types</SelectItem>
+                          <SelectItem value={PostType.JOB_LISTING}>
+                            Job Listing
+                          </SelectItem>
+                          <SelectItem value={PostType.ANNOUNCEMENT}>
+                            Announcement
+                          </SelectItem>
+                          <SelectItem value={PostType.NEWS}>News</SelectItem>
+                          <SelectItem value={PostType.EVENT}>Event</SelectItem>
+                          <SelectItem value={PostType.PROMOTION}>
+                            Promotion
+                          </SelectItem>
+                          <SelectItem value={PostType.GENERAL}>General</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Button 
+                        variant="outline" 
+                        onClick={fetchPostings}
+                        className="h-11 px-4 rounded-xl border-border/50 hover:border-primary/50 transition-colors"
+                      >
+                        <RefreshCcw className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Posts Feed - Social Media Style */}
+            <div className="space-y-6 max-w-5xl mx-auto pt-2">
           {filteredPostings.map((posting) => {
             // Get first image attachment for preview
             const imageAttachment = posting.attachments?.find(
@@ -561,40 +690,44 @@ export default function PostsPage() {
             return (
               <Card
                 key={posting.id}
-                className="rounded-md border overflow-hidden pt-0 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95"
+                className="rounded-xl border-0 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 bg-card/95 backdrop-blur-sm"
               >
-                <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
                 {/* Post Header */}
-                <CardHeader className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-11 h-11 ring-2 ring-border">
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-12 h-12 ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
                       <AvatarImage src="/avatars/default.jpg" alt="User" />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/40 text-primary font-semibold">
                         {posting.createdBy?.name?.charAt(0) ||
                           posting.organization?.name?.charAt(0) ||
                           "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col w-full gap-2">
-                      <div className="flex-1 min-w-0 ">
-                        <div className="flex md:flex-row flex-col md:items-center items-start">
-                          <h3 className="font-semibold text-foreground truncate">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-semibold text-foreground text-base">
                             {posting.createdBy?.name ||
                               posting.organization?.name ||
                               "Unknown User"}
                           </h3>
                           {posting.organization && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs px-2 py-1 bg-muted/50 rounded-full">
                               {posting.organization.name}
                             </Badge>
                           )}
                         </div>
+                        <Button variant="ghost" size="sm" className="p-2 hover:bg-muted/50 rounded-lg transition-colors">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="flex flex-row md:items-center items-start gap-2 text-sm text-muted-foreground">
-                        <span>{formatDate(posting.createdAt)}</span>
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <span className="hover:text-foreground transition-colors cursor-pointer">
+                          {formatDate(posting.createdAt)}
+                        </span>
                         <span>•</span>
                         <Badge
-                          className={`text-xs ${getPostTypeColor(
+                          className={`text-xs px-3 py-1 font-medium rounded-full ${getPostTypeColor(
                             posting.postType
                           )}`}
                         >
@@ -602,35 +735,37 @@ export default function PostsPage() {
                         </Badge>
                       </div>
                     </div>
-
-                    <Button variant="ghost" size="sm" className="p-2">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
                   </div>
                 </CardHeader>
 
                 {/* Post Content */}
-                <CardContent className="pt-0 pb-4">
+                <CardContent className="px-6 pt-0 pb-5">
                   <div className="space-y-4">
-                    <h2 className="text-xl font-semibold text-foreground leading-tight">
+                    <h2 className="text-xl font-semibold text-foreground leading-tight hover:text-primary transition-colors cursor-pointer">
                       {posting.title}
                     </h2>
-                    <div className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {posting.content && posting.content.length > 200
-                        ? `${posting.content.substring(0, 200)}...`
+                    <div className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-base">
+                      {posting.content && posting.content.length > 300
+                        ? `${posting.content.substring(0, 300)}...`
                         : posting.content}
                     </div>
+                    {posting.content && posting.content.length > 300 && (
+                      <button className="text-primary hover:text-primary/80 text-sm font-medium transition-colors">
+                        See more
+                      </button>
+                    )}
                   </div>
                 </CardContent>
 
                 {/* Image Preview */}
                 {imageAttachment && (
                   <div className="px-6 pb-4">
-                    <div className="relative w-full bg-muted/40 rounded-lg overflow-hidden ring-1 ring-border/50">
+                    <div className="relative w-full bg-muted/20 rounded-xl overflow-hidden ring-1 ring-border/30 hover:ring-border/50 transition-all duration-200 group cursor-pointer">
                       <ImageWithFallback
                         attachment={imageAttachment}
                         getViewableImageUrl={getViewableImageUrl}
                       />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200" />
                     </div>
                   </div>
                 )}
@@ -740,30 +875,39 @@ export default function PostsPage() {
                 )}
 
                 {/* Engagement Stats */}
-                <div className="px-6 py-3 border-t border-border/60 bg-muted/10">
+                <div className="px-6 py-4 border-t border-border/30">
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                        <ThumbsUp className="w-3 h-3 text-primary-foreground" />
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2 hover:text-foreground transition-colors cursor-pointer">
+                        <div className="w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center">
+                          <Heart className="w-3 h-3 text-white fill-white" />
+                        </div>
+                        <span className="font-medium">42</span>
                       </div>
-                      <span>42 likes</span>
+                      <div className="flex items-center gap-2 hover:text-foreground transition-colors cursor-pointer">
+                        <MessageCircle className="w-5 h-5" />
+                        <span className="font-medium">
+                          {commentsCountByPost[posting.id] ?? 0}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 hover:text-foreground transition-colors cursor-pointer">
+                        <Share2 className="w-5 h-5" />
+                        <span className="font-medium">3</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span>
-                        {commentsCountByPost[posting.id] ?? 0} comments
-                      </span>
-                      <span>3 shares</span>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>2.1k views</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="px-6 py-2 border-t border-border/60">
+                <div className="px-6 py-4 border-t border-border/30">
                   <div className="flex items-center justify-between">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all duration-200"
                     >
                       <Heart className="w-5 h-5" />
                       <span className="font-medium">Like</span>
@@ -771,7 +915,7 @@ export default function PostsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 rounded-xl transition-all duration-200"
                       onClick={() => handleToggleComments(posting.id)}
                     >
                       <MessageCircle className="w-5 h-5" />
@@ -780,7 +924,7 @@ export default function PostsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="flex-1 flex items-center justify-center gap-2 py-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded-xl transition-all duration-200"
                     >
                       <Share2 className="w-5 h-5" />
                       <span className="font-medium">Share</span>
@@ -788,7 +932,7 @@ export default function PostsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/40"
+                      className="p-3 text-muted-foreground hover:text-yellow-500 hover:bg-yellow-500/10 rounded-xl transition-all duration-200"
                     >
                       <Bookmark className="w-5 h-5" />
                     </Button>
@@ -797,11 +941,11 @@ export default function PostsPage() {
 
                 {/* View Post Button */}
                 {!expandedCommentsByPost[posting.id] && (
-                  <div className="px-6 pb-4">
+                  <div className="px-6 pb-6">
                     <Link href={`/posts/view/${posting.id}`}>
                       <Button
                         variant="outline"
-                        className="w-full rounded-lg"
+                        className="w-full rounded-xl border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200"
                         size="sm"
                       >
                         <Eye className="w-4 h-4 mr-2" />
@@ -811,7 +955,7 @@ export default function PostsPage() {
                   </div>
                 )}
                 {expandedCommentsByPost[posting.id] && (
-                  <div className="px-6 pt-2 pb-4 border-t border-border/50">
+                  <div className="px-6 pt-4 pb-6 border-t border-border/30 bg-muted/5">
                     {loadingCommentsByPost[posting.id] && (
                       <div className="text-sm text-muted-foreground">
                         Loading comments...
@@ -964,7 +1108,7 @@ export default function PostsPage() {
                           )}
                           {user ? (
                             <form
-                              className="mt-3 flex items-center gap-2"
+                              className="mt-4 flex items-center gap-3"
                               onSubmit={async (e) => {
                                 e.preventDefault();
                                 const form = e.currentTarget as HTMLFormElement;
@@ -1003,23 +1147,29 @@ export default function PostsPage() {
                                 }
                               }}
                             >
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage src={user?.profilePicture || "/avatars/default.jpg"} alt={user?.name || "User"} />
+                                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/40 text-primary font-semibold text-xs">
+                                  {user?.name?.charAt(0) || "U"}
+                                </AvatarFallback>
+                              </Avatar>
                               <input
                                 type="text"
                                 name="newComment"
                                 placeholder="Write a comment..."
-                                className="flex-1 px-4 py-2 border rounded-full bg-muted/30 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                                className="flex-1 px-4 py-3 border border-border/30 rounded-full bg-background/50 text-sm focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0 focus-visible:border-primary/50 transition-all duration-200"
                               />
                               <Button
                                 type="submit"
                                 size="sm"
-                                className="rounded-full h-8 w-8 p-0 flex items-center justify-center"
+                                className="rounded-full h-10 w-10 p-0 flex items-center justify-center bg-primary hover:bg-primary/90 transition-all duration-200"
                               >
                                 <Send className="w-4 h-4" />
                               </Button>
                             </form>
                           ) : (
-                            <div className="mt-3 text-sm text-muted-foreground">
-                              <Link href="/" className="underline">
+                            <div className="mt-4 text-sm text-muted-foreground">
+                              <Link href="/" className="underline hover:text-foreground transition-colors">
                                 Log in
                               </Link>{" "}
                               to comment.
@@ -1032,78 +1182,80 @@ export default function PostsPage() {
               </Card>
             );
           })}
-        </div>
-
-        {filteredPostings.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">
-              No published posts found
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Delete Comment Modal */}
-      <Dialog
-        open={deleteCommentModal.isOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDeleteCommentModal({
-              isOpen: false,
-              commentId: "",
-              postingId: "",
-              commentContent: "",
-            });
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Comment</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this comment? This action cannot
-              be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="bg-muted p-3 rounded-lg">
-              <p className="text-sm text-muted-foreground">Comment:</p>
-              <p className="text-sm mt-1">
-                {deleteCommentModal.commentContent}
+          
+          {filteredPostings.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-4">
+                No published posts found
               </p>
             </div>
+          )}
+        </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() =>
-                setDeleteCommentModal({
-                  isOpen: false,
-                  commentId: "",
-                  postingId: "",
-                  commentContent: "",
-                })
-              }
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteComment}>
-              Delete Comment
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
 
-      {/* Floating Scroll to Top Button */}
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 bg-primary text-primary-foreground p-3 rounded-full shadow-lg hover:bg-primary/90 transition-all duration-200 z-50"
-          aria-label="Scroll to top"
+        {/* Delete Comment Modal */}
+        <Dialog
+          open={deleteCommentModal.isOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeleteCommentModal({
+                isOpen: false,
+                commentId: "",
+                postingId: "",
+                commentContent: "",
+              });
+            }
+          }}
         >
-          <ChevronUp className="h-5 w-5" />
-        </button>
-      )}
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Comment</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this comment? This action cannot
+                be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="bg-muted p-3 rounded-lg">
+                <p className="text-sm text-muted-foreground">Comment:</p>
+                <p className="text-sm mt-1">
+                  {deleteCommentModal.commentContent}
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setDeleteCommentModal({
+                    isOpen: false,
+                    commentId: "",
+                    postingId: "",
+                    commentContent: "",
+                  })
+                }
+              >
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteComment}>
+                Delete Comment
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Floating Scroll to Top Button */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 bg-primary text-primary-foreground p-3 rounded-full shadow-lg hover:bg-primary/90 transition-all duration-200 z-50"
+            aria-label="Scroll to top"
+          >
+            <ChevronUp className="h-5 w-5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
