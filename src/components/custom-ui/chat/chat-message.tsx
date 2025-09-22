@@ -129,82 +129,96 @@ const ChatMessage: FC<ChatMessageProps> = ({
       <div
         className={`flex ${
           isOutgoing ? "justify-end" : "justify-start"
-        } mb-4 group relative`}
+        } mb-3 group relative`}
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
-        <div className="flex max-w-md">
+        <div className="flex max-w-[70%] items-end">
           {!isOutgoing && (
-            <div className="flex-shrink-0 mr-3">
+            <div className="flex-shrink-0 mr-2 mb-1">
               <UserAvatar 
                 user={sender} 
                 showStatus={true} 
-                status={sender?.id === '1' ? UserStatus.ONLINE : UserStatus.OFFLINE} 
+                status={sender?.id === '1' ? UserStatus.ONLINE : UserStatus.OFFLINE}
+                size="sm"
               />
             </div>
           )}
+          
           <div className="flex flex-col">
             <div
-              className={`rounded-lg px-4 py-2 shadow-sm ${
+              className={`relative rounded-2xl px-4 py-2 shadow-sm transition-all duration-200 hover:shadow-md ${
                 isOutgoing
-                  ? "bg-blue-500 text-white rounded-br-none"
-                  : "bg-white text-gray-800 rounded-bl-none"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-br-md"
+                  : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-md border border-gray-200 dark:border-gray-600"
               }`}
               onClick={() => setShowFullTime(!showFullTime)}
             >
               {message.content && (
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{message.content}</p>
               )}
 
-              
               {/* Render attachments if any */}
               {message.attachments && message.attachments.length > 0 && (
                 <div className="mt-2">
                   {message.attachments.map(attachment => renderAttachment(attachment))}
                 </div>
               )}
+              
+              {/* Message reactions placeholder */}
+              <div className="flex items-center mt-2 space-x-1">
+                <button className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/20 rounded-full px-2 py-1">
+                  😊
+                </button>
+                <button className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/20 rounded-full px-2 py-1">
+                  ❤️
+                </button>
+                <button className="text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/20 rounded-full px-2 py-1">
+                  👍
+                </button>
+              </div>
             </div>
             
             <div
-              className={`text-xs mt-1 text-muted-foreground flex items-center ${
+              className={`text-xs mt-1 text-muted-foreground flex items-center space-x-1 ${
                 isOutgoing ? "justify-end" : ""
               }`}
             >
               {isOutgoing && (
                 <>
                   {message.status === MessageStatus.READ ? (
-                    <CheckCheck className="w-3 h-3 mr-1 text-blue-500" />
+                    <CheckCheck className="w-3 h-3 text-blue-500" />
                   ) : message.status === MessageStatus.DELIVERED ? (
-                    <CheckCheck className="w-3 h-3 mr-1 text-gray-400" />
+                    <CheckCheck className="w-3 h-3 text-gray-400" />
                   ) : (
-                    <Check className="w-3 h-3 mr-1" />
+                    <Check className="w-3 h-3" />
                   )}
                 </>
               )}
-              <span title={fullTime}>
+              <span title={fullTime} className="hover:text-foreground cursor-pointer">
                 {showFullTime ? fullTime : formattedTime}
               </span>
             </div>
           </div>
           
           {isOutgoing && (
-            <div className="flex-shrink-0 ml-3">
+            <div className="flex-shrink-0 ml-2 mb-1">
               <UserAvatar user={sender} size="sm" />
             </div>
           )}
           
           {/* Message actions */}
           {showActions && (
-            <div className={`absolute ${isOutgoing ? 'right-16' : 'left-16'} top-0 bg-popover shadow-md rounded-lg p-1 flex items-center z-10`}>
+            <div className={`absolute ${isOutgoing ? 'right-16' : 'left-16'} top-0 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1 flex items-center z-10 border border-gray-200 dark:border-gray-600`}>
               <button 
-                className="p-1 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded"
+                className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                 title="Reply"
                 onClick={handleReplyMessage}
               >
                 <Reply className="w-4 h-4" />
               </button>
               <button 
-                className="p-1 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded"
+                className="p-2 text-gray-500 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                 title="Copy text"
                 onClick={handleCopyText}
               >
@@ -212,19 +226,13 @@ const ChatMessage: FC<ChatMessageProps> = ({
               </button>
               {isOutgoing && (
                 <button 
-                  className="p-1 text-gray-500 hover:text-red-500 hover:bg-gray-100 rounded"
+                  className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   title="Delete message"
                   onClick={handleDeleteMessage}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
-              <button 
-                className="p-1 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded"
-                title="More options"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
             </div>
           )}
         </div>

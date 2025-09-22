@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Paperclip, Send, Smile, RefreshCw, AlertCircle } from "lucide-react";
+import { Paperclip, Send, Smile, RefreshCw, AlertCircle, ArrowLeft, LayoutDashboard, Newspaper } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import EmptyState from "@/components/custom-ui/chat/empty-chat";
 import ChatHeader from "@/components/custom-ui/chat/chat-header";
@@ -37,6 +38,7 @@ interface BackendAttachment {
 
 export default function ChatPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const {
     messages,
     contacts,
@@ -186,7 +188,6 @@ export default function ChatPage() {
       currentJobStatus: null,
       isEmailVerified: true, // Default value
       accounts: [], // Empty array
-      business: null, // No business
     };
   };
 
@@ -199,34 +200,84 @@ export default function ChatPage() {
       name: att.fileName || 'file',
       size: att.size || 0,
       messageId: att.messageId || '',
+      uploadedAt: att.uploadedAt,
     }));
   };
 
+  // Transform User to Contact type for components
+  const transformToContact = (user: User | null) => {
+    if (!user) return null;
+    return {
+      id: user.id,
+      name: user.name || 'Unknown User',
+      email: user.email,
+      role: user.role,
+      userType: user.userType,
+    };
+  };
+
   return (
-    <div className="flex h-screen bg-background">
-      {/* Contacts sidebar */}
-      <div className="w-1/4 bg-card border-r border-border shadow-sm">
+    <div className="h-screen bg-background flex flex-col">
+      {/* Main Header - Always visible */}
+      <div className="bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center space-x-4">
+            <button 
+              className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
+              onClick={() => window.history.back()}
+              title="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">Messages</h1>
+              <p className="text-sm text-muted-foreground">Stay connected with your team</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button 
+              className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
+              title="Dashboard"
+              onClick={() => router.push('/dashboard')}
+            >
+              <LayoutDashboard className="w-5 h-5" />
+            </button>
+            <button 
+              className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
+              title="Posts"
+              onClick={() => router.push('/posts')}
+            >
+              <Newspaper className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex flex-1">
+        {/* Contacts sidebar */}
+        <div className="w-1/4 bg-card border-r border-border shadow-sm">
         <ContactList
-          contacts={contacts.map(transformToUser).filter(Boolean) as User[]}
-          currentUser={transformToUser(user as BackendUser)}
-          selectedContact={selectedContact ? transformToUser(selectedContact) : null}
+          contacts={contacts.map(transformToUser).filter(Boolean).map(transformToContact).filter(Boolean) as any[]}
+          currentUser={transformToContact(transformToUser(user as BackendUser))}
+          selectedContact={selectedContact ? transformToContact(transformToUser(selectedContact)) : null}
           onSelectContact={(contact) => selectContact(contact as BackendUser)}
           onSearchUsers={searchUsersForNewChat}
           onStartNewConversation={handleStartNewConversation}
         />
-      </div>
+        </div>
 
-      {/* Chat area */}
-      <div className="w-3/4 flex flex-col">
+        {/* Chat area */}
+        <div className="w-3/4 flex flex-col">
         {selectedContact ? (
           <>
-            <ChatHeader contact={transformToUser(selectedContact) as User} />
+            <ChatHeader contact={transformToContact(transformToUser(selectedContact)) as any} />
 
             {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto bg-secondary scroll-none relative">
-              <div className="max-w-3xl mx-auto">
+            <div className="flex-1 p-6 overflow-y-auto bg-gradient-to-b from-background to-muted/20 scroll-none relative">
+              <div className="max-w-4xl mx-auto">
                 {messages.length === 0 ? (
-                  <EmptyState type="no-messages" contact={transformToUser(selectedContact) as User} />
+                  <EmptyState type="no-messages" contact={transformToContact(transformToUser(selectedContact)) as any} />
                 ) : (
                   messages.map((message) => (
                     <ChatMessage
@@ -240,7 +291,7 @@ export default function ChatPage() {
                         attachments: transformAttachments(message.attachments),
                       }}
                       isOutgoing={message.senderId === user?.id}
-                      sender={message.senderId === user?.id ? transformToUser(user as BackendUser) : transformToUser(selectedContact)}
+                      sender={message.senderId === user?.id ? transformToContact(transformToUser(user as BackendUser)) : transformToContact(transformToUser(selectedContact))}
                       onDelete={handleDeleteMessage}
                       onReply={() => {
                         // reply functionality here
@@ -259,11 +310,11 @@ export default function ChatPage() {
             </div>
 
             {/* Message input */}
-            <div className="border-t border-border p-4 bg-card">
-              <form onSubmit={handleSendMessage} className="flex items-center space-x-2 relative">
+            <div className="border-t border-border p-4 bg-card/50 backdrop-blur-sm">
+              <form onSubmit={handleSendMessage} className="flex items-end space-x-3 relative">
                 <button
                   type="button"
-                  className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition"
+                  className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
                   onClick={handleAttachClick}
                 >
                   <Paperclip className="w-5 h-5" />
@@ -276,26 +327,33 @@ export default function ChatPage() {
                   className="hidden"
                 />
 
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message"
-                  className="flex-1 px-4 py-2 border border-input rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
-                  disabled={isSending}
-                />
-
-                <button
-                  type="button"
-                  className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                >
-                  <Smile className="w-5 h-5" />
-                </button>
+                <div className="flex-1 relative">
+                  <textarea
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Type a message..."
+                    className="w-full px-4 py-3 pr-12 border border-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 bg-background text-foreground resize-none min-h-[44px] max-h-32"
+                    disabled={isSending}
+                    rows={1}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+                    }}
+                  />
+                  
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  >
+                    <Smile className="w-5 h-5" />
+                  </button>
+                </div>
 
                 <button
                   type="submit"
-                  className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition disabled:opacity-50"
+                  className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                   disabled={isSending || (!newMessage.trim() && !file)}
                 >
                   {isSending ? (
@@ -331,6 +389,7 @@ export default function ChatPage() {
         ) : (
           <EmptyState type="no-contact" />
         )}
+        </div>
       </div>
     </div>
   );

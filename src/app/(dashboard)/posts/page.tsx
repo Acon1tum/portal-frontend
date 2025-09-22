@@ -495,7 +495,8 @@ export default function PostsPage() {
       <div className="flex">
         {/* Left Sidebar - User Menu - Fixed Position */}
         <div className="w-80 bg-card border-r border-border fixed left-0 top-16 bottom-0 p-8 overflow-y-auto z-10 hidden lg:block">
-          <div className="space-y-8">
+          <div className="flex flex-col h-full">
+            <div className="space-y-8">
             {/* User Profile Section */}
             <div className="flex items-center gap-4 pb-6 border-b border-border/50">
               <Avatar className="w-14 h-14 ring-2 ring-primary/20 hover:ring-primary/40 transition-all duration-200">
@@ -554,9 +555,10 @@ export default function PostsPage() {
                 </Button>
               </div>
             </div>
+            </div>
 
             {/* User Actions */}
-            <div className="space-y-3">
+            <div className="space-y-3 mt-auto">
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Account
               </h4>

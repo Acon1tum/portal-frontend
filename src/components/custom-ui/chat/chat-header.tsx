@@ -1,5 +1,6 @@
 import { FC, useState } from "react";
-import { MoreHorizontal, Phone, Video, Info, X, FileText, Bell, BellOff, Search, UserPlus } from "lucide-react";
+import { MoreHorizontal, Phone, Video, Info, X, FileText, Bell, BellOff, Search, UserPlus, ArrowLeft, LayoutDashboard, Newspaper } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { UserStatus } from "@/utils/types";
 import UserAvatar from "./user-avatar";
 
@@ -16,49 +17,81 @@ interface ChatHeaderProps {
 const ChatHeader: FC<ChatHeaderProps> = ({ contact }) => {
   const [infoOpen, setInfoOpen] = useState(false);
   const [muted, setMuted] = useState(false);
+  const router = useRouter();
   
   return (
     <>
-      <div className="border-b border-border p-4 bg-background flex items-center justify-between sticky top-0 z-10 shadow-sm">
+      <div className="border-b border-border p-4 bg-background/95 backdrop-blur-sm flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center">
-          <UserAvatar 
-            user={contact} 
-            size="md" 
-            showStatus={true} 
-            status={UserStatus.ONLINE} 
-          />
-          <div className="ml-3">
-            <h2 className="font-semibold">{contact.name}</h2>
-            <div className="flex items-center">
+          <button 
+            className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200 mr-3 lg:hidden"
+            onClick={() => window.history.back()}
+            title="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="relative">
+            <UserAvatar 
+              user={contact} 
+              size="md" 
+              showStatus={true} 
+              status={UserStatus.ONLINE} 
+            />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
+          </div>
+          <div className="ml-4">
+            <h2 className="font-semibold text-lg">{contact.name}</h2>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-green-500 font-medium">Online</span>
+              <span className="text-xs text-muted-foreground">•</span>
               <span className="text-sm text-muted-foreground">
-                {contact.role} • {contact.email}
+                {contact.role}
               </span>
             </div>
           </div>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-1">
+          {/* Navigation buttons */}
           <button 
-            className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition"
+            className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
+            title="Dashboard"
+            onClick={() => router.push('/dashboard')}
+          >
+            <LayoutDashboard className="w-5 h-5" />
+          </button>
+          <button 
+            className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
+            title="Posts"
+            onClick={() => router.push('/posts')}
+          >
+            <Newspaper className="w-5 h-5" />
+          </button>
+          
+          {/* Chat-specific buttons */}
+          <div className="w-px h-6 bg-border mx-2"></div>
+          
+          <button 
+            className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
             title="Search in conversation"
           >
             <Search className="w-5 h-5" />
           </button>
           <button 
-            className={`p-2 ${muted ? 'text-destructive hover:text-destructive/90' : 'text-muted-foreground hover:text-foreground'} rounded-full hover:bg-muted transition`}
+            className={`p-3 ${muted ? 'text-destructive hover:text-destructive/90' : 'text-muted-foreground hover:text-foreground'} rounded-full hover:bg-muted/50 transition-colors duration-200`}
             title={muted ? "Unmute notifications" : "Mute notifications"}
             onClick={() => setMuted(!muted)}
           >
             {muted ? <BellOff className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
           </button>
           <button 
-            className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition"
+            className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
             title="Contact information"
             onClick={() => setInfoOpen(!infoOpen)}
           >
             <Info className="w-5 h-5" />
           </button>
           <button 
-            className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted transition"
+            className="p-3 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/50 transition-colors duration-200"
             title="More options"
           >
             <MoreHorizontal className="w-5 h-5" />

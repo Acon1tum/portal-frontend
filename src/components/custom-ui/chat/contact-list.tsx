@@ -69,17 +69,16 @@ export default function ContactList({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with search toggle */}
+      {/* Search toggle */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-foreground">Contacts</h3>
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowSearch(!showSearch)}
-            className="h-8 w-8 p-0"
+            className="h-10 w-10 p-0 rounded-full hover:bg-primary/20 transition-colors duration-200"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
           </Button>
         </div>
         
@@ -163,20 +162,38 @@ export default function ContactList({
             {contacts.map((contact) => (
               <div
                 key={contact.id}
-                className={`flex items-center p-3 hover:bg-muted cursor-pointer ${
-                  selectedContact?.id === contact.id ? 'bg-muted' : ''
+                className={`flex items-center p-4 hover:bg-muted/50 cursor-pointer transition-colors duration-200 border-b border-border/50 ${
+                  selectedContact?.id === contact.id ? 'bg-primary/5 border-l-4 border-l-primary' : ''
                 }`}
                 onClick={() => onSelectContact(contact)}
               >
-                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
-                  <User className="h-4 w-4 text-primary" />
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/40 rounded-full flex items-center justify-center mr-3 ring-2 ring-primary/10">
+                    <User className="h-6 w-6 text-primary" />
+                  </div>
+                  {/* Online status indicator */}
+                  <div className="absolute bottom-1 right-3 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-foreground truncate">
-                    {contact.name}
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-sm font-semibold text-foreground truncate">
+                      {contact.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      2m
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate mb-1">
+                    {contact.email}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {contact.email}
+                    Hey! How are you doing today? 👋
+                  </div>
+                </div>
+                {/* Unread message indicator */}
+                <div className="ml-2">
+                  <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-xs text-primary-foreground font-semibold">2</span>
                   </div>
                 </div>
               </div>

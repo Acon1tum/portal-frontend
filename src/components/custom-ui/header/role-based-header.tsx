@@ -2,31 +2,16 @@
 
 import * as React from "react";
 import { useAuth } from "@/lib/auth-context";
-import { UserRole } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard,
-  Newspaper,
+  MessageCircle,
 } from "lucide-react";
 
 export function RoleBasedHeader() {
   const { user } = useAuth();
   const router = useRouter();
 
-  const getDashboardPath = (role: UserRole) => {
-    switch (role) {
-      case UserRole.SUPERADMIN:
-        return "/admin";
-      case UserRole.EXHIBITOR:
-      case UserRole.SPONSOR:
-        return "/owner";
-      case UserRole.CORPORATE_PROFESSIONAL:
-        return "/dashboard";
-      default:
-        return "/posts";
-    }
-  };
 
   return (
     <header className="bg-background border-b sticky top-0 z-50">
@@ -42,20 +27,11 @@ export function RoleBasedHeader() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() =>
-                router.push(getDashboardPath(user?.role || UserRole.VISITOR))
-              }
+              onClick={() => router.push("/admin/chat")}
+              className="flex items-center gap-2"
             >
-              <LayoutDashboard className="h-4 w-4 mr-2" />
-              Dashboard
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/posts")}
-            >
-              <Newspaper className="h-4 w-4 mr-2" />
-              Posts
+              <MessageCircle className="h-4 w-4" />
+              Messages
             </Button>
           </nav>
         </div>
