@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Search,
   Filter,
@@ -11,9 +11,6 @@ import {
   MoreHorizontal,
   ThumbsUp,
   Bookmark,
-  Paperclip,
-  FileText,
-  Download,
   Image as ImageIcon,
   Send,
   RefreshCcw,
@@ -68,7 +65,7 @@ interface ImageWithFallbackProps {
   }) => Promise<string>;
 }
 
-function ImageWithFallback({
+const ImageWithFallback = React.memo(function ImageWithFallback({
   attachment,
   getViewableImageUrl,
 }: ImageWithFallbackProps) {
@@ -77,26 +74,40 @@ function ImageWithFallback({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const loadImage = async () => {
+      if (!isMounted) return;
+      
       setIsLoading(true);
       setHasError(false);
 
       try {
         const url = await getViewableImageUrl(attachment);
+        if (isMounted) {
         if (url) {
           setImageUrl(url);
         } else {
           setHasError(true);
+          }
         }
       } catch (error) {
+        if (isMounted) {
         setHasError(true);
+        }
       } finally {
+        if (isMounted) {
         setIsLoading(false);
+        }
       }
     };
 
     loadImage();
-  }, [attachment, getViewableImageUrl]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [attachment.id, attachment.url, getViewableImageUrl]);
 
   if (isLoading) {
     return (
@@ -148,6 +159,10 @@ function ImageWithFallback({
           alt={attachment.fileName || "Post image"}
           className="w-full h-auto object-contain rounded-lg max-h-[600px]"
           loading="lazy"
+          style={{ 
+            minHeight: "200px",
+            backgroundColor: "transparent"
+          }}
         />
       ) : (
         <Image
@@ -158,11 +173,15 @@ function ImageWithFallback({
           className="w-full h-auto object-contain rounded-lg max-h-[600px]"
           sizes="(max-width: 768px) 100vw, 800px"
           onError={() => setHasError(true)}
+          style={{ 
+            minHeight: "200px",
+            backgroundColor: "transparent"
+          }}
         />
       )}
     </div>
   );
-}
+});
 
 export default function PostsPage() {
   const { postings, loading, error, fetchPostings } = usePostings();
@@ -170,10 +189,6 @@ export default function PostsPage() {
   const { theme, setTheme } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [expandedAttachmentsByPost, setExpandedAttachmentsByPost] = useState<
-    Record<string, boolean>
-  >({});
-  const ATTACHMENTS_PREVIEW_COUNT = 2;
   const [expandedCommentsByPost, setExpandedCommentsByPost] = useState<
     Record<string, boolean>
   >({});
@@ -351,8 +366,8 @@ export default function PostsPage() {
     return fileType.startsWith("image/");
   };
 
-  // Function to get viewable image URL
-  const getViewableImageUrl = async (attachment: {
+  // Function to get viewable image URL - memoized to prevent recreation
+  const getViewableImageUrl = useCallback(async (attachment: {
     id: string;
     url?: string;
   }) => {
@@ -376,14 +391,8 @@ export default function PostsPage() {
     }
 
     return "";
-  };
+  }, []);
 
-  const formatSize = (size?: number) => {
-    if (!size || size <= 0) return "";
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  };
 
   if (loading) {
     return (
@@ -623,52 +632,50 @@ export default function PostsPage() {
               </div>
 
               {/* Filters */}
-              <Card className="p-0 border-none shadow-none md:w-fit w-full">
-                <CardContent className="p-0">
-                  <div className="flex flex-col sm:flex-row gap-4 md:w-fit w-full">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search posts..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-11 h-11 w-full md:w-80 rounded-xl border-border/50 focus:border-primary/50 transition-colors"
-                      />
-                    </div>
-
-                    <div className="flex flex-row gap-3">
-                      <Select value={selectedType} onValueChange={setSelectedType}>
-                        <SelectTrigger className="md:w-40 w-full h-11 rounded-xl border-border/50 focus:border-primary/50 transition-colors">
-                          <SelectValue placeholder="All Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          <SelectItem value={PostType.JOB_LISTING}>
-                            Job Listing
-                          </SelectItem>
-                          <SelectItem value={PostType.ANNOUNCEMENT}>
-                            Announcement
-                          </SelectItem>
-                          <SelectItem value={PostType.NEWS}>News</SelectItem>
-                          <SelectItem value={PostType.EVENT}>Event</SelectItem>
-                          <SelectItem value={PostType.PROMOTION}>
-                            Promotion
-                          </SelectItem>
-                          <SelectItem value={PostType.GENERAL}>General</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Button 
-                        variant="outline" 
-                        onClick={fetchPostings}
-                        className="h-11 px-4 rounded-xl border-border/50 hover:border-primary/50 transition-colors"
-                      >
-                        <RefreshCcw className="w-4 h-4" />
-                      </Button>
-                    </div>
+              <div className="md:w-fit w-full">
+                <div className="flex flex-col sm:flex-row gap-4 md:w-fit w-full">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search posts..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-11 h-11 w-full md:w-80 rounded-xl border-border/50 focus:border-primary/50 transition-colors"
+                    />
                   </div>
-                </CardContent>
-              </Card>
+
+                  <div className="flex flex-row gap-3">
+                    <Select value={selectedType} onValueChange={setSelectedType}>
+                      <SelectTrigger className="md:w-40 w-full h-11 rounded-xl border-border/50 focus:border-primary/50 transition-colors">
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value={PostType.JOB_LISTING}>
+                          Job Listing
+                        </SelectItem>
+                        <SelectItem value={PostType.ANNOUNCEMENT}>
+                          Announcement
+                        </SelectItem>
+                        <SelectItem value={PostType.NEWS}>News</SelectItem>
+                        <SelectItem value={PostType.EVENT}>Event</SelectItem>
+                        <SelectItem value={PostType.PROMOTION}>
+                          Promotion
+                        </SelectItem>
+                        <SelectItem value={PostType.GENERAL}>General</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Button 
+                      variant="outline" 
+                      onClick={fetchPostings}
+                      className="h-11 px-4 rounded-xl border-border/50 hover:border-primary/50 transition-colors"
+                    >
+                      <RefreshCcw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Posts Feed - Social Media Style */}
@@ -678,16 +685,6 @@ export default function PostsPage() {
             const imageAttachment = posting.attachments?.find(
               (att) => att.fileType && isImageFile(att.fileType)
             );
-            const otherAttachments = (posting.attachments || []).filter(
-              (att) => !imageAttachment || att.id !== imageAttachment.id
-            );
-            const isExpanded = !!expandedAttachmentsByPost[posting.id];
-            const attachmentsToRender =
-              otherAttachments.length > 0
-                ? isExpanded
-                  ? otherAttachments
-                  : otherAttachments.slice(0, ATTACHMENTS_PREVIEW_COUNT)
-                : [];
 
             return (
               <Card
@@ -762,119 +759,19 @@ export default function PostsPage() {
                 {/* Image Preview */}
                 {imageAttachment && (
                   <div className="px-6 pb-4">
-                    <div className="relative w-full bg-muted/20 rounded-xl overflow-hidden ring-1 ring-border/30 hover:ring-border/50 transition-all duration-200 group cursor-pointer">
+                    <div className="relative w-full bg-muted/20 rounded-xl overflow-hidden ring-1 ring-border/30 hover:ring-border/50 transition-all duration-200 group cursor-pointer min-h-[200px]">
                       <ImageWithFallback
+                        key={`${posting.id}-${imageAttachment.id}`}
                         attachment={imageAttachment}
                         getViewableImageUrl={getViewableImageUrl}
                       />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-200 pointer-events-none" />
                     </div>
                   </div>
                 )}
 
-                {/* Attachments List (non-preview) */}
-                {posting.attachments && posting.attachments.length > 0 && (
-                  <div className="px-6 pb-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                      <Paperclip className="w-4 h-4" />
-                      <span>Attachments</span>
-                    </div>
-                    <div className="space-y-2">
-                      {otherAttachments.length === 0 ? (
-                        // If only an image preview exists and no other files, still show it as an item
-                        imageAttachment ? (
-                          <div className="flex items-center justify-between p-3 border border-border/60 rounded-lg hover:bg-muted/30 transition-colors">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <ImageIcon className="w-5 h-5 text-blue-500" />
-                              <div className="truncate">
-                                <p className="font-medium text-sm truncate">
-                                  {imageAttachment.fileName || "Image"}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {imageAttachment.fileType}{" "}
-                                  {imageAttachment.size
-                                    ? `• ${formatSize(imageAttachment.size)}`
-                                    : ""}
-                                </p>
-                              </div>
-                            </div>
-                            <Button variant="outline" size="sm" asChild>
-                              <a
-                                href={imageAttachment.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                download={imageAttachment.fileName}
-                              >
-                                <Download className="w-4 h-4 mr-2" /> Download
-                              </a>
-                            </Button>
-                          </div>
-                        ) : null
-                      ) : (
-                        <>
-                          {attachmentsToRender.map((att) => (
-                            <div
-                              key={att.id}
-                              className="flex items-center justify-between p-3 border border-border/60 rounded-lg hover:bg-muted/30 transition-colors"
-                            >
-                              <div className="flex items-center gap-3 min-w-0">
-                                {att.fileType && isImageFile(att.fileType) ? (
-                                  <ImageIcon className="w-5 h-5 text-blue-500" />
-                                ) : (
-                                  <FileText className="w-5 h-5 text-gray-500" />
-                                )}
-                                <div className="truncate">
-                                  <p className="font-medium text-sm truncate">
-                                    {att.fileName || "Attachment"}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground truncate">
-                                    {att.fileType}{" "}
-                                    {att.size
-                                      ? `• ${formatSize(att.size)}`
-                                      : ""}
-                                  </p>
-                                </div>
-                              </div>
-                              <Button variant="outline" size="sm" asChild>
-                                <a
-                                  href={att.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  download={att.fileName}
-                                >
-                                  <Download className="w-4 h-4 mr-2" /> Download
-                                </a>
-                              </Button>
-                            </div>
-                          ))}
-                          {otherAttachments.length >
-                            ATTACHMENTS_PREVIEW_COUNT && (
-                            <div className="pt-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-foreground/80 hover:text-foreground"
-                                onClick={() =>
-                                  setExpandedAttachmentsByPost((prev) => ({
-                                    ...prev,
-                                    [posting.id]: !isExpanded,
-                                  }))
-                                }
-                              >
-                                {isExpanded
-                                  ? "See less"
-                                  : `See more... (${
-                                      otherAttachments.length -
-                                      ATTACHMENTS_PREVIEW_COUNT
-                                    } more)`}
-                              </Button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Attachments List - Hidden in preview, shown in full post view */}
+                {/* Attachments are now only displayed when viewing the full post */}
 
                 {/* Engagement Stats */}
                 <div className="px-6 py-4 border-t border-border/30">
