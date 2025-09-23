@@ -154,235 +154,262 @@ export default function AdminViewPostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-6 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <Link href="/post-management">
-            <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Management
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-4xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">{posting.title}</h1>
-            <p className="text-muted-foreground mt-1">View post details and manage settings</p>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-4 max-w-4xl">
+      {/* Social Media Style Header */}
+      <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border z-10 -mx-4 px-4 py-3 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/post-management">
+              <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-primary-foreground text-sm font-semibold">
+                  {posting.createdBy?.name?.charAt(0) || posting.createdBy?.email?.charAt(0) || 'U'}
+                </span>
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-foreground">{posting.title}</h1>
+                <p className="text-sm text-muted-foreground">
+                  {posting.createdBy?.name || posting.createdBy?.email} • {formatDate(posting.createdAt)}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="flex gap-3">
-          <Link href={`/post-management/edit/${posting.id}`}>
-            <Button variant="outline" className="rounded-lg hover:bg-muted/50">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
+          <div className="flex items-center gap-2">
+            <Link href={`/post-management/edit/${posting.id}`}>
+              <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted">
+                <Edit className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full hover:bg-muted"
+              onClick={handleTogglePublish}
+            >
+              {posting.isPublished ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
             </Button>
-          </Link>
-          <Button
-            variant="outline"
-            className="rounded-lg hover:bg-muted/50"
-            onClick={handleTogglePublish}
-          >
-            {posting.isPublished ? (
-              <>
-                <EyeOff className="w-4 h-4 mr-2" />
-                Unpublish
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4 mr-2" />
-                Publish
-              </>
-            )}
-          </Button>
-          <Button
-            variant="outline"
-            className="rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={handleDelete}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full hover:bg-muted text-destructive hover:text-destructive"
+              onClick={handleDelete}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-        {/* Main Content */}
-        <div className="xl:col-span-3 space-y-8">
-          {/* Post Content */}
-          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
-            <div className="h-1 bg-gradient-to-r from-primary/70 via-pink-500/60 to-cyan-500/60 rounded-t-xl" />
-            <CardHeader className="pt-6">
-              <CardTitle>Post Content</CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <div className="prose max-w-none">
-                <p className="whitespace-pre-wrap text-foreground leading-relaxed text-lg">{posting.content}</p>
+      {/* Social Media Style Post */}
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        {/* Post Header */}
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-primary-foreground font-semibold">
+                  {posting.createdBy?.name?.charAt(0) || posting.createdBy?.email?.charAt(0) || 'U'}
+                </span>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Attachments */}
-          {posting.attachments && posting.attachments.length > 0 && (
-            <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
-              <div className="h-1 bg-gradient-to-r from-blue-500/70 via-purple-500/60 to-indigo-500/60 rounded-t-xl" />
-              <CardHeader className="pt-6">
-                <CardTitle>Attachments</CardTitle>
-                <CardDescription>
-                  Files attached to this post
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pb-6">
-                <div className="space-y-6">
-                  {posting.attachments.map((attachment) => (
-                    <div
-                      key={attachment.id}
-                      className="border border-border/60 rounded-xl overflow-hidden hover:shadow-md transition-shadow"
-                    >
-                      {/* Image Preview */}
-                      {attachment.fileType && isImageFile(attachment.fileType) && getViewableImageUrl(attachment) && (
-                        <div className="relative w-full bg-muted/40">
-                          <Image
-                            src={getViewableImageUrl(attachment)}
-                            alt={attachment.fileName || 'Attachment'}
-                            width={800}
-                            height={600}
-                            className="w-full h-auto object-contain max-h-80"
-                            onError={() => {
-                              // Next.js Image handles errors gracefully
-                            }}
-                          />
-                        </div>
-                      )}
-                      
-                      {/* File Info */}
-                      <div className="flex items-center gap-4 p-4">
-                        {attachment.fileType && isImageFile(attachment.fileType) ? (
-                          <ImageIcon className="w-5 h-5 text-muted-foreground" />
-                        ) : (
-                          <FileText className="w-5 h-5 text-muted-foreground" />
-                        )}
-                        <div className="flex-1">
-                          <p className="font-semibold text-lg">{attachment.fileName || 'Unnamed file'}</p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
-                          </p>
-                        </div>
-                        <Button variant="outline" size="sm" className="rounded-lg hover:bg-muted/50" asChild>
-                          <a 
-                            href={attachment.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            download={attachment.fileName}
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Download
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+              <div>
+                <h2 className="font-semibold text-foreground">{posting.createdBy?.name || posting.createdBy?.email}</h2>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{formatDate(posting.createdAt)}</span>
+                  <span>•</span>
+                  <Badge 
+                    variant={posting.isPublished ? "default" : "secondary"}
+                    className="text-xs"
+                  >
+                    {posting.isPublished ? "Published" : "Draft"}
+                  </Badge>
+                  <Badge className={`${getPostTypeColor(posting.postType)} text-xs`}>
+                    {posting.postType.replace('_', ' ')}
+                  </Badge>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6 xl:col-span-1">
-          {/* Post Info */}
-          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
-            <div className="h-1 bg-gradient-to-r from-green-500/70 via-emerald-500/60 to-teal-500/60 rounded-t-xl" />
-            <CardHeader className="pt-6">
-              <CardTitle>Post Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6 pb-6">
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant={posting.isPublished ? "default" : "secondary"}
-                  className="rounded-lg"
+        {/* Post Content */}
+        <div className="p-4">
+          <div className="prose max-w-none">
+            <p className="whitespace-pre-wrap text-foreground leading-relaxed text-base">{posting.content}</p>
+          </div>
+        </div>
+
+        {/* Attachments */}
+        {posting.attachments && posting.attachments.length > 0 && (
+          <div className="px-4 pb-4">
+            <div className="space-y-3">
+              {posting.attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className="border border-border rounded-xl overflow-hidden"
                 >
-                  {posting.isPublished ? "Published" : "Draft"}
-                </Badge>
-                <Badge className={`${getPostTypeColor(posting.postType)} rounded-lg`}>
-                  {posting.postType.replace('_', ' ')}
-                </Badge>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4" />
-                  <span>Created: {formatDate(posting.createdAt)}</span>
+                  {/* Image Preview */}
+                  {attachment.fileType && isImageFile(attachment.fileType) && getViewableImageUrl(attachment) && (
+                    <div className="relative w-full bg-muted">
+                      <Image
+                        src={getViewableImageUrl(attachment)}
+                        alt={attachment.fileName || 'Attachment'}
+                        width={800}
+                        height={600}
+                        className="w-full h-auto object-contain max-h-96"
+                        onError={() => {
+                          // Next.js Image handles errors gracefully
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* File Info */}
+                  <div className="flex items-center gap-3 p-3 bg-muted/30">
+                    {attachment.fileType && isImageFile(attachment.fileType) ? (
+                      <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <FileText className="w-4 h-4 text-muted-foreground" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{attachment.fileName || 'Unnamed file'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {attachment.fileType} • {attachment.size ? `${(attachment.size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted" asChild>
+                      <a 
+                        href={attachment.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        download={attachment.fileName}
+                      >
+                        <Download className="w-4 h-4" />
+                      </a>
+                    </Button>
+                  </div>
                 </div>
-                
-                {posting.updatedAt !== posting.createdAt && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>Updated: {formatDate(posting.updatedAt)}</span>
-                  </div>
-                )}
+              ))}
+            </div>
+          </div>
+        )}
 
-                {posting.organization && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Building className="w-4 h-4" />
-                    <span>{posting.organization.name}</span>
-                  </div>
-                )}
-
-                {posting.createdBy && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <User className="w-4 h-4" />
-                    <span>{posting.createdBy.name || posting.createdBy.email}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="rounded-xl border border-border/50 shadow-sm hover:shadow-lg transition-shadow duration-200 bg-card/95">
-            <div className="h-1 bg-gradient-to-r from-orange-500/70 via-red-500/60 to-pink-500/60 rounded-t-xl" />
-            <CardHeader className="pt-6">
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 pb-6">
-              <Button
-                variant="outline"
-                className="w-full rounded-lg hover:bg-muted/50"
-                onClick={handleTogglePublish}
-              >
-                {posting.isPublished ? (
-                  <>
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    Unpublish Post
-                  </>
-                ) : (
-                  <>
-                    <Eye className="w-4 h-4 mr-2" />
-                    Publish Post
-                  </>
-                )}
+        {/* Social Media Style Actions */}
+        <div className="px-4 py-3 border-t border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted">
+                <span className="text-lg">👍</span>
+                <span className="ml-2 text-sm text-muted-foreground">Like</span>
               </Button>
-              
-              <Link href={`/post-management/edit/${posting.id}`}>
-                <Button variant="outline" className="w-full rounded-lg hover:bg-muted/50">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Post
-                </Button>
-              </Link>
-
-              <div className="pt-2">
-              <Button
-                variant="outline"
-                className="w-full rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={handleDelete}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Post
+              <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted">
+                <span className="text-lg">💬</span>
+                <span className="ml-2 text-sm text-muted-foreground">Comment</span>
               </Button>
+              <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted">
+                <span className="text-lg">🔄</span>
+                <span className="ml-2 text-sm text-muted-foreground">Share</span>
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted">
+                <span className="text-lg">🔖</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="rounded-full hover:bg-muted">
+                <span className="text-lg">⋯</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Post Details Sidebar */}
+      <div className="mt-6 space-y-4">
+        {/* Post Stats */}
+        <div className="bg-card border border-border rounded-xl p-4">
+          <h3 className="font-semibold text-foreground mb-3">Post Details</h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Status</span>
+              <Badge 
+                variant={posting.isPublished ? "default" : "secondary"}
+                className="text-xs"
+              >
+                {posting.isPublished ? "Published" : "Draft"}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Type</span>
+              <Badge className={`${getPostTypeColor(posting.postType)} text-xs`}>
+                {posting.postType.replace('_', ' ')}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Created</span>
+              <span className="text-foreground">{formatDate(posting.createdAt)}</span>
+            </div>
+            {posting.updatedAt !== posting.createdAt && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Updated</span>
+                <span className="text-foreground">{formatDate(posting.updatedAt)}</span>
               </div>
-            </CardContent>
-          </Card>
+            )}
+            {posting.organization && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Organization</span>
+                <span className="text-foreground truncate ml-2">{posting.organization.name}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Management Actions */}
+        <div className="bg-card border border-border rounded-xl p-4">
+          <h3 className="font-semibold text-foreground mb-3">Manage Post</h3>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-lg hover:bg-muted"
+              onClick={handleTogglePublish}
+            >
+              {posting.isPublished ? (
+                <>
+                  <EyeOff className="w-4 h-4 mr-2" />
+                  Unpublish Post
+                </>
+              ) : (
+                <>
+                  <Eye className="w-4 h-4 mr-2" />
+                  Publish Post
+                </>
+              )}
+            </Button>
+            
+            <Link href={`/post-management/edit/${posting.id}`}>
+              <Button variant="outline" className="w-full justify-start rounded-lg hover:bg-muted">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Post
+              </Button>
+            </Link>
+
+            <Button
+              variant="outline"
+              className="w-full justify-start rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={handleDelete}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Post
+            </Button>
+          </div>
         </div>
       </div>
       </div>

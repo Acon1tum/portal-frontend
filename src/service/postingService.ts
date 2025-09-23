@@ -55,6 +55,19 @@ class PostingService {
     return response.json();
   }
 
+  // Get current user's postings
+  async getMyPostings(): Promise<Posting[]> {
+    const response = await fetch(`${API_URL}/postings/user/my-posts`, {
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user postings');
+    }
+
+    return response.json();
+  }
+
   // Create new posting
   async createPosting(data: CreatePostingRequest): Promise<Posting> {
     const response = await fetch(`${API_URL}/postings/create`, {

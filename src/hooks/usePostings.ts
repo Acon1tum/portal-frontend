@@ -49,6 +49,20 @@ export const usePostings = () => {
     }
   }, []);
 
+  // Fetch current user's postings
+  const fetchMyPostings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await postingService.getMyPostings();
+      setPostings(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch user postings');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Create new posting
   const createPosting = useCallback(async (data: CreatePostingRequest) => {
     setLoading(true);
@@ -168,6 +182,7 @@ export const usePostings = () => {
     fetchPostings,
     fetchPostingsByOrganization,
     fetchPostingsByType,
+    fetchMyPostings,
     createPosting,
     updatePosting,
     deletePosting,
